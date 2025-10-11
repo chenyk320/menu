@@ -330,8 +330,8 @@ body {
     filter: blur(0);
 }
 
-/* 加载状态样式 */
-.dish-image::before {
+/* 加载状态样式 - 只对有图片的元素生效 */
+.dish-image:not(.no-image)::before {
     content: '📷';
     font-size: 2rem;
     color: #6c757d;
@@ -377,12 +377,12 @@ body {
     100% { transform: rotate(360deg); }
 }
 
-/* 图片加载状态 */
-.dish-image {
+/* 图片加载状态 - 只对有图片的元素生效 */
+.dish-image:not(.no-image) {
     position: relative;
 }
 
-.dish-image::after {
+.dish-image:not(.no-image)::after {
     content: '';
     position: absolute;
     top: 0;
@@ -402,6 +402,33 @@ body {
 @keyframes shimmer {
     0% { background-position: -200% 0; }
     100% { background-position: 200% 0; }
+}
+
+/* 无图片时的样式 */
+.dish-image.no-image {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border: 2px dashed #dee2e6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.no-image-content {
+    text-align: center;
+    color: #6c757d;
+}
+
+.no-image-icon {
+    font-size: 3rem;
+    margin-bottom: 10px;
+    opacity: 0.7;
+}
+
+.no-image-text {
+    font-size: 0.9rem;
+    font-weight: 500;
+    opacity: 0.8;
 }
 
 .dish-content {

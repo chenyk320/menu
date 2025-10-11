@@ -219,7 +219,12 @@ function createDishCard(dish) {
     // 构建图片HTML - 使用懒加载
     const imageHtml = dish.image 
         ? `<img data-src="/static/${dish.image}" alt="${dish[`name_${currentLanguage}`]}" class="dish-image lazy-load" src="/static/images/placeholder.jpg">`
-        : `<div class="dish-image" style="display: flex; align-items: center; justify-content: center; background: #f8f9fa; color: #6c757d;">📷</div>`;
+        : `<div class="dish-image no-image">
+             <div class="no-image-content">
+               <div class="no-image-icon">📷</div>
+               <div class="no-image-text">${currentLanguage === 'cn' ? '暂无图片' : 'Nessuna immagine'}</div>
+             </div>
+           </div>`;
     
     // 构建过敏源徽章HTML
     const allergenBadges = dish.allergens.map(allergen => 
