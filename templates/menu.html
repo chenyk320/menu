@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>青田美食菜单</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <!-- 头部 -->
+        <header class="header">
+            <h1 class="restaurant-name">🥢 青田美食</h1>
+            <div class="language-toggle">
+                <button class="lang-btn active" data-lang="cn">中文</button>
+                <button class="lang-btn" data-lang="it">Italiano</button>
+            </div>
+        </header>
+
+        <!-- 订购说明（仅意大利语显示） -->
+        <section class="order-instruction" id="order-instruction" style="display: none;">
+            <div class="instruction-content">
+                <p>Per favore, scriva sul quaderno il numero dei piatti che desidera ordinare.</p>
+            </div>
+        </section>
+
+        <!-- 过敏源说明 -->
+        <section class="allergen-info" id="allergen-info">
+            <div class="allergen-header" onclick="toggleAllergenInfo()">
+                <h3 class="allergen-title" data-cn="过敏源说明" data-it="Informazioni sugli allergeni">过敏源说明</h3>
+                <span class="allergen-toggle" id="allergen-toggle" style="transform: rotate(180deg);">▼</span>
+            </div>
+            <div class="allergen-content" id="allergen-content" style="display: block;">
+                <div class="allergen-grid" id="allergen-grid">
+                    <!-- 过敏源图标将通过JavaScript动态生成 -->
+                </div>
+            </div>
+        </section>
+
+        <!-- 菜单分类 -->
+        <nav class="category-nav" id="category-nav">
+            <button class="category-btn active" data-category="all" data-cn="全部" data-it="Tutti">全部</button>
+            <!-- 分类按钮将通过JavaScript动态生成 -->
+        </nav>
+
+        <!-- 菜品列表 -->
+        <main class="menu-content">
+            <div class="dishes-grid" id="dishes-grid">
+                <!-- 菜品将通过JavaScript动态生成 -->
+            </div>
+        </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/menu.js') }}?v=1.5"></script>
+</body>
+</html>

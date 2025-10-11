@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Placeholder Image</title>
+</head>
+<body>
+    <h1>Testing Placeholder Image</h1>
+    
+    <h2>Direct Image Reference:</h2>
+    <img src="/static/images/placeholder.jpg" alt="Placeholder" style="width: 200px; height: 200px; border: 1px solid #ccc;">
+    
+    <h2>Image with onerror fallback:</h2>
+    <img src="/static/images/placeholder.jpg" alt="Placeholder" style="width: 200px; height: 200px; border: 1px solid #ccc;" 
+         onerror="console.log('Image failed to load:', this.src); this.src='/static/images/placeholder.jpg';">
+    
+    <h2>JavaScript Test:</h2>
+    <div id="test-container"></div>
+    
+    <script>
+        // Test JavaScript image loading
+        const testContainer = document.getElementById('test-container');
+        const testDish = {
+            id: 1,
+            name_cn: '测试菜品',
+            name_it: 'Test Dish',
+            image: null, // This should trigger placeholder
+            price: 10.50
+        };
+        
+        const imgHtml = `
+            <img src="${testDish.image ? '/static/' + testDish.image : '/static/images/placeholder.jpg'}" 
+                 alt="${testDish.name_cn}" style="width: 200px; height: 200px; border: 1px solid #ccc;" 
+                 onerror="console.log('JavaScript image failed to load:', this.src); this.src='/static/images/placeholder.jpg';">
+        `;
+        
+        testContainer.innerHTML = imgHtml;
+        
+        // Log any errors
+        window.addEventListener('error', function(e) {
+            console.log('Global error:', e);
+        });
+    </script>
+</body>
+</html>

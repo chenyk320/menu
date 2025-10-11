@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>餐厅管理后台</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+</head>
+<body>
+    <div class="admin-container">
+        <!-- 头部导航 -->
+        <header class="admin-header">
+            <div class="header-left">
+                <h1>🍽️ 餐厅管理后台</h1>
+                <nav class="admin-nav">
+                    <button class="nav-btn active" data-tab="dishes">菜品管理</button>
+                    <button class="nav-btn" data-tab="categories">分类管理</button>
+                    <button class="nav-btn" data-tab="allergens">过敏源管理</button>
+                </nav>
+            </div>
+            <div class="header-right">
+                <div class="user-info">
+                    <span class="user-name">欢迎，{{ session.username }}</span>
+                    <a href="/logout" class="logout-btn">登出</a>
+                </div>
+                <a href="/" class="view-menu-btn">查看菜单</a>
+            </div>
+        </header>
+
+        <!-- 菜品管理 -->
+        <section class="admin-section active" id="dishes-section">
+            <div class="section-header">
+                <h2>菜品管理</h2>
+                <button class="add-btn" id="add-dish-btn">+ 添加菜品</button>
+            </div>
+            
+            <div class="dishes-list" id="dishes-list">
+                <!-- 菜品列表将通过JavaScript动态生成 -->
+            </div>
+        </section>
+
+        <!-- 分类管理 -->
+        <section class="admin-section" id="categories-section">
+            <div class="section-header">
+                <h2>分类管理</h2>
+                <button class="add-btn" id="add-category-btn">+ 添加分类</button>
+            </div>
+            
+            <div class="categories-list" id="categories-list">
+                <!-- 分类列表将通过JavaScript动态生成 -->
+            </div>
+        </section>
+
+        <!-- 过敏源管理 -->
+        <section class="admin-section" id="allergens-section">
+            <div class="section-header">
+                <h2>过敏源管理</h2>
+                <button class="add-btn" id="add-allergen-btn">+ 添加过敏源</button>
+            </div>
+            
+            <div class="allergens-list" id="allergens-list">
+                <!-- 过敏源列表将通过JavaScript动态生成 -->
+            </div>
+        </section>
+    </div>
+
+    <!-- 添加菜品模态框 -->
+    <div class="modal" id="dish-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>添加菜品</h3>
+                <button class="close-btn" onclick="closeModal('dish-modal')">&times;</button>
+            </div>
+            <form id="dish-form" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="name_cn">中文菜品名</label>
+                    <input type="text" id="name_cn" name="name_cn" required>
+                </div>
+                <div class="form-group">
+                    <label for="name_it">意大利语菜品名</label>
+                    <input type="text" id="name_it" name="name_it" required>
+                </div>
+                <div class="form-group">
+                    <label for="description_it">意大利语描述</label>
+                    <textarea id="description_it" name="description_it" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="price">价格 (€)</label>
+                    <input type="number" id="price" name="price" step="0.01" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label for="category_id">分类</label>
+                    <select id="category_id" name="category_id">
+                        <option value="">选择分类</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="image">菜品图片</label>
+                    <input type="file" id="image" name="image" accept="image/*">
+                </div>
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="surgelato" name="surgelato">
+                        <span class="checkbox-text">冷冻食品 (Surgelato)</span>
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label>过敏源</label>
+                    <div class="allergen-checkboxes" id="allergen-checkboxes">
+                        <!-- 过敏源复选框将通过JavaScript动态生成 -->
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="cancel-btn" onclick="closeModal('dish-modal')">取消</button>
+                    <button type="submit" class="submit-btn">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 编辑菜品模态框 -->
+    <div class="modal" id="edit-dish-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>编辑菜品</h3>
+                <button class="close-btn" onclick="closeModal('edit-dish-modal')">&times;</button>
+            </div>
+            <form id="edit-dish-form" enctype="multipart/form-data">
+                <input type="hidden" id="edit-dish-id" name="dish_id">
+                <div class="form-group">
+                    <label for="edit-name_cn">中文菜品名</label>
+                    <input type="text" id="edit-name_cn" name="name_cn" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-name_it">意大利语菜品名</label>
+                    <input type="text" id="edit-name_it" name="name_it" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-description_it">意大利语描述</label>
+                    <textarea id="edit-description_it" name="description_it" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="edit-price">价格 (€)</label>
+                    <input type="number" id="edit-price" name="price" step="0.01" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-category_id">分类</label>
+                    <select id="edit-category_id" name="category_id">
+                        <option value="">选择分类</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="edit-image">菜品图片</label>
+                    <input type="file" id="edit-image" name="image" accept="image/*">
+                    <div id="current-image-preview" class="current-image-preview"></div>
+                    <button type="button" id="delete-image-btn" class="delete-image-btn" style="display: none;">删除当前图片</button>
+                </div>
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="edit-surgelato" name="surgelato">
+                        <span class="checkbox-text">冷冻食品 (Surgelato)</span>
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label>过敏源</label>
+                    <div class="allergen-checkboxes" id="edit-allergen-checkboxes">
+                        <!-- 过敏源复选框将通过JavaScript动态生成 -->
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="cancel-btn" onclick="closeModal('edit-dish-modal')">取消</button>
+                    <button type="submit" class="submit-btn">更新</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 添加分类模态框 -->
+    <div class="modal" id="category-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>添加分类</h3>
+                <button class="close-btn" onclick="closeModal('category-modal')">&times;</button>
+            </div>
+            <form id="category-form">
+                <div class="form-group">
+                    <label for="category_name_cn">中文分类名</label>
+                    <input type="text" id="category_name_cn" name="name_cn" required>
+                </div>
+                <div class="form-group">
+                    <label for="category_name_it">意大利语分类名</label>
+                    <input type="text" id="category_name_it" name="name_it" required>
+                </div>
+                <div class="form-group">
+                    <label for="category_prefix_letter">前缀字母</label>
+                    <input type="text" id="category_prefix_letter" name="prefix_letter" maxlength="1" required placeholder="A">
+                </div>
+                <div class="form-group">
+                    <label for="category_sort_order">排序</label>
+                    <input type="number" id="category_sort_order" name="sort_order" min="0" value="0">
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="cancel-btn" onclick="closeModal('category-modal')">取消</button>
+                    <button type="submit" class="submit-btn">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 添加过敏源模态框 -->
+    <div class="modal" id="allergen-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>添加过敏源</h3>
+                <button class="close-btn" onclick="closeModal('allergen-modal')">&times;</button>
+            </div>
+            <form id="allergen-form">
+                <div class="form-group">
+                    <label for="allergen_name_cn">中文过敏源名</label>
+                    <input type="text" id="allergen_name_cn" name="name_cn" required>
+                </div>
+                <div class="form-group">
+                    <label for="allergen_name_it">意大利语过敏源名</label>
+                    <input type="text" id="allergen_name_it" name="name_it" required>
+                </div>
+                <div class="form-group">
+                    <label for="allergen_icon">图标 (emoji)</label>
+                    <input type="text" id="allergen_icon" name="icon" placeholder="🌾" required>
+                </div>
+                <div class="form-group">
+                    <label for="allergen_description_cn">中文描述</label>
+                    <input type="text" id="allergen_description_cn" name="description_cn">
+                </div>
+                <div class="form-group">
+                    <label for="allergen_description_it">意大利语描述</label>
+                    <input type="text" id="allergen_description_it" name="description_it">
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="cancel-btn" onclick="closeModal('allergen-modal')">取消</button>
+                    <button type="submit" class="submit-btn">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+</body>
+</html>
