@@ -6,6 +6,9 @@ import os
 import uuid
 from datetime import datetime
 from functools import wraps
+from PIL import Image
+from cdn_service import cdn_service
+from config import Config
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your-secret-key-here'
@@ -64,6 +67,40 @@ def reorder_dishes_in_category(category_id):
     
     db.session.commit()
 
+# 图片优化函数
+def optimize_uploaded_image(file_path, max_width=800, quality=85):
+    """
+    优化上传的图片
+    :param file_path: 图片文件路径
+    :param max_width: 最大宽度
+    :param quality: JPEG质量
+    """
+    try:
+        with Image.open(file_path) as img:
+            # 转换为RGB模式
+            if img.mode in ('RGBA', 'LA', 'P'):
+                background = Image.new('RGB', img.size, (255, 255, 255))
+                if img.mode == 'P':
+                    img = img.convert('RGBA')
+                background.paste(img, mask=img.split()[-1] if img.mode == 'RGBA' else None)
+                img = background
+            elif img.mode != 'RGB':
+                img = img.convert('RGB')
+            
+            # 调整尺寸
+            if img.width > max_width:
+                ratio = max_width / img.width
+                new_height = int(img.height * ratio)
+                img = img.resize((max_width, new_height), Image.Resampling.LANCZOS)
+            
+            # 保存优化后的图片
+            img.save(file_path, 'JPEG', quality=quality, optimize=True)
+            return True
+            
+    except Exception as e:
+        print(f"图片优化失败: {e}")
+        return False
+
 
 # 管理员凭据
 ADMIN_USERNAME = 'chenyaokang'
@@ -93,18 +130,32 @@ class Dish(db.Model):
     name_cn = db.Column(db.String(100), nullable=False)
     name_it = db.Column(db.String(100), nullable=False)
     description_it = db.Column(db.Text)
-    price = db.Column(db.Float, nullable=False)
-    image = db.Column(db.String(200))
+    price = db.Column(db.Float, nullable=False)  # 保留原价格字段作为默认价格
+    image = db.Column(db.String(200))  # 本地图片路径
+    image_cdn_url = db.Column(db.String(500))  # CDN图片URL
     category_id = db.Column(db.Integer, db.ForeignKey('category.id'))
     allergens = db.relationship('Allergen', secondary='dish_allergen', backref='dishes')
+    portions = db.relationship('DishPortion', backref='dish', cascade='all, delete-orphan')
     sort_order = db.Column(db.Integer, default=0)
     surgelato = db.Column(db.Boolean, default=False)  # 冷冻食品标识
+    is_popular = db.Column(db.Boolean, default=False)  # 人气菜标识
+    is_new = db.Column(db.Boolean, default=False)  # 新菜标识
 
 # 菜品过敏源关联表
 dish_allergen = db.Table('dish_allergen',
     db.Column('dish_id', db.Integer, db.ForeignKey('dish.id'), primary_key=True),
     db.Column('allergen_id', db.Integer, db.ForeignKey('allergen.id'), primary_key=True)
 )
+
+# 菜品分量价格模型
+class DishPortion(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    dish_id = db.Column(db.Integer, db.ForeignKey('dish.id'), nullable=False)
+    portion_name_cn = db.Column(db.String(50), nullable=False)  # 分量名称（中文）
+    portion_name_it = db.Column(db.String(50), nullable=False)  # 分量名称（意大利语）
+    price = db.Column(db.Float, nullable=False)  # 该分量的价格
+    sort_order = db.Column(db.Integer, default=0)  # 排序
+    is_default = db.Column(db.Boolean, default=False)  # 是否为默认分量
 
 # 主页路由
 @app.route('/')
@@ -167,14 +218,36 @@ def add_dish():
     
     # 处理图片上传
     image_path = None
+    image_cdn_url = None
+    
     if 'image' in request.files:
         file = request.files['image']
         if file and file.filename:
             filename = secure_filename(file.filename)
             # 生成唯一文件名
             unique_filename = f"{uuid.uuid4()}_{filename}"
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], unique_filename))
-            image_path = f"images/{unique_filename}"
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
+            file.save(file_path)
+            
+            # 尝试上传到CDN
+            if cdn_service.is_enabled():
+                cdn_url = cdn_service.optimize_and_upload(file_path, unique_filename)
+                if cdn_url:
+                    image_cdn_url = cdn_url
+                    # 如果CDN上传成功且不需要本地备份，删除本地文件
+                    if not Config.LOCAL_BACKUP:
+                        os.remove(file_path)
+                        image_path = None
+                    else:
+                        image_path = f"images/{unique_filename}"
+                else:
+                    # CDN上传失败，使用本地文件
+                    optimize_uploaded_image(file_path, max_width=800, quality=85)
+                    image_path = f"images/{unique_filename}"
+            else:
+                # CDN未配置，使用本地文件
+                optimize_uploaded_image(file_path, max_width=800, quality=85)
+                image_path = f"images/{unique_filename}"
     
     # 创建菜品
     dish = Dish(
@@ -184,11 +257,35 @@ def add_dish():
         description_it=data.get('description_it', ''),
         price=float(data['price']),
         image=image_path,
+        image_cdn_url=image_cdn_url,
         category_id=category_id,
-        surgelato=data.get('surgelato') == 'on'  # 复选框返回'on'或None
+        surgelato=data.get('surgelato') == 'on',  # 复选框返回'on'或None
+        is_popular=data.get('is_popular') == 'on',  # 人气菜标识
+        is_new=data.get('is_new') == 'on'  # 新菜标识
     )
     
     db.session.add(dish)
+    db.session.flush()  # 获取dish的ID
+    
+    # 处理分量价格
+    portions_data = request.form.get('portions', '')
+    if portions_data:
+        try:
+            import json
+            portions = json.loads(portions_data)
+            for i, portion in enumerate(portions):
+                dish_portion = DishPortion(
+                    dish_id=dish.id,
+                    portion_name_cn=portion.get('name_cn', ''),
+                    portion_name_it=portion.get('name_it', ''),
+                    price=float(portion.get('price', 0)),
+                    sort_order=i,
+                    is_default=portion.get('is_default', False)
+                )
+                db.session.add(dish_portion)
+        except (json.JSONDecodeError, ValueError) as e:
+            # 如果分量数据格式错误，继续使用默认价格
+            pass
     
     # 添加过敏源
     allergen_ids = request.form.getlist('allergens')
@@ -227,7 +324,12 @@ def edit_dish(dish_id):
             # 保存新图片
             filename = secure_filename(file.filename)
             unique_filename = f"{uuid.uuid4()}_{filename}"
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], unique_filename))
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
+            file.save(file_path)
+            
+            # 优化图片
+            optimize_uploaded_image(file_path, max_width=800, quality=85)
+            
             dish.image = f"images/{unique_filename}"
     
     # 更新菜品信息
@@ -237,6 +339,8 @@ def edit_dish(dish_id):
     dish.price = float(data['price'])
     dish.category_id = new_category_id
     dish.surgelato = data.get('surgelato') == 'on'
+    dish.is_popular = data.get('is_popular') == 'on'
+    dish.is_new = data.get('is_new') == 'on'
     
     # 如果分类改变，重新生成序号
     if old_category_id != new_category_id:
@@ -247,6 +351,29 @@ def edit_dish(dish_id):
         # 重新排序旧分类的菜品
         if old_category_id:
             reorder_dishes_in_category(old_category_id)
+    
+    # 处理分量价格
+    portions_data = request.form.get('portions', '')
+    # 清除现有分量
+    dish.portions.clear()
+    
+    if portions_data:
+        try:
+            import json
+            portions = json.loads(portions_data)
+            for i, portion in enumerate(portions):
+                dish_portion = DishPortion(
+                    dish_id=dish.id,
+                    portion_name_cn=portion.get('name_cn', ''),
+                    portion_name_it=portion.get('name_it', ''),
+                    price=float(portion.get('price', 0)),
+                    sort_order=i,
+                    is_default=portion.get('is_default', False)
+                )
+                db.session.add(dish_portion)
+        except (json.JSONDecodeError, ValueError) as e:
+            # 如果分量数据格式错误，继续使用默认价格
+            pass
     
     # 更新过敏源
     dish.allergens.clear()  # 清除现有过敏源
@@ -307,6 +434,20 @@ def get_dishes():
     dishes = Dish.query.join(Category).order_by(Category.sort_order, Dish.sort_order).all()
     result = []
     for dish in dishes:
+        # 获取分量信息
+        portions = []
+        for portion in sorted(dish.portions, key=lambda x: x.sort_order):
+            portions.append({
+                'id': portion.id,
+                'name_cn': portion.portion_name_cn,
+                'name_it': portion.portion_name_it,
+                'price': portion.price,
+                'is_default': portion.is_default
+            })
+        
+        # 确定图片URL（优先使用CDN）
+        image_url = dish.image_cdn_url if dish.image_cdn_url else dish.image
+        
         result.append({
             'id': dish.id,
             'dish_number': dish.dish_number,
@@ -314,9 +455,14 @@ def get_dishes():
             'name_it': dish.name_it,
             'description_it': dish.description_it,
             'price': dish.price,
-            'image': dish.image,
+            'image': image_url,
+            'image_local': dish.image,
+            'image_cdn': dish.image_cdn_url,
             'category_id': dish.category_id,
             'surgelato': dish.surgelato,
+            'is_popular': dish.is_popular,
+            'is_new': dish.is_new,
+            'portions': portions,
             'allergens': [{'id': a.id, 'name_cn': a.name_cn, 'name_it': a.name_it, 'icon': a.icon} for a in dish.allergens]
         })
     return jsonify(result)

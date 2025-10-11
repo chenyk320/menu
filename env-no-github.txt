@@ -1,0 +1,23 @@
+# .env 文件 - 防止图片上传到GitHub的配置
+# 复制此文件为 .env 并填入真实的配置信息
+
+# Flask配置
+SECRET_KEY=your-secret-key-here
+DATABASE_URL=sqlite:///menu.db
+UPLOAD_FOLDER=static/images
+
+# 阿里云OSS配置（必须配置才能避免本地存储）
+OSS_ACCESS_KEY_ID=your_access_key_id
+OSS_ACCESS_KEY_SECRET=your_access_key_secret
+OSS_BUCKET_NAME=menu-images
+OSS_ENDPOINT=oss-cn-hangzhou.aliyuncs.com
+
+# CDN配置
+CDN_DOMAIN=https://your-cdn-domain.com
+
+# 本地备份配置 - 设置为false避免图片存储到本地
+LOCAL_BACKUP=false
+
+# 管理员配置
+ADMIN_USERNAME=chenyaokang
+ADMIN_PASSWORD=761748142

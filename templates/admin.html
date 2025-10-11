@@ -85,8 +85,17 @@
                     <textarea id="description_it" name="description_it" rows="3"></textarea>
                 </div>
                 <div class="form-group">
-                    <label for="price">价格 (€)</label>
+                    <label for="price">默认价格 (€)</label>
                     <input type="number" id="price" name="price" step="0.01" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label>分量价格 (可选)</label>
+                    <div class="portions-container">
+                        <div class="portions-list" id="portions-list">
+                            <!-- 分量列表将通过JavaScript动态生成 -->
+                        </div>
+                        <button type="button" class="add-portion-btn" onclick="addPortion()">+ 添加分量</button>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label for="category_id">分类</label>
@@ -102,6 +111,18 @@
                     <label class="checkbox-label">
                         <input type="checkbox" id="surgelato" name="surgelato">
                         <span class="checkbox-text">冷冻食品 (Surgelato)</span>
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="is_popular" name="is_popular">
+                        <span class="checkbox-text">人气菜 (热销/Hot)</span>
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="is_new" name="is_new">
+                        <span class="checkbox-text">新菜 (新品/New)</span>
                     </label>
                 </div>
                 <div class="form-group">
@@ -140,8 +161,17 @@
                     <textarea id="edit-description_it" name="description_it" rows="3"></textarea>
                 </div>
                 <div class="form-group">
-                    <label for="edit-price">价格 (€)</label>
+                    <label for="edit-price">默认价格 (€)</label>
                     <input type="number" id="edit-price" name="price" step="0.01" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label>分量价格 (可选)</label>
+                    <div class="portions-container">
+                        <div class="portions-list" id="edit-portions-list">
+                            <!-- 分量列表将通过JavaScript动态生成 -->
+                        </div>
+                        <button type="button" class="add-portion-btn" onclick="addEditPortion()">+ 添加分量</button>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label for="edit-category_id">分类</label>
@@ -159,6 +189,18 @@
                     <label class="checkbox-label">
                         <input type="checkbox" id="edit-surgelato" name="surgelato">
                         <span class="checkbox-text">冷冻食品 (Surgelato)</span>
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="edit-is_popular" name="is_popular">
+                        <span class="checkbox-text">人气菜 (热销/Hot)</span>
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="edit-is_new" name="is_new">
+                        <span class="checkbox-text">新菜 (新品/New)</span>
                     </label>
                 </div>
                 <div class="form-group">

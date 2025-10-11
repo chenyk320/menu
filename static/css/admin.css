@@ -638,6 +638,111 @@ form {
     border: 2px solid #c6f6d5;
 }
 
+/* 分量价格管理样式 */
+.portions-container {
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    padding: 15px;
+    background: #f8f9fa;
+}
+
+.portions-list {
+    margin-bottom: 15px;
+}
+
+.portion-item {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    padding: 10px;
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    margin-bottom: 10px;
+}
+
+.portion-item input {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+.portion-item .portion-price {
+    width: 100px;
+}
+
+.portion-item .default-checkbox {
+    width: auto;
+    margin: 0;
+}
+
+.portion-item .remove-portion {
+    padding: 6px 10px;
+    background: #e74c3c;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all 0.3s ease;
+}
+
+.portion-item .remove-portion:hover {
+    background: #c0392b;
+}
+
+.add-portion-btn {
+    width: 100%;
+    padding: 10px;
+    background: #3498db;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.add-portion-btn:hover {
+    background: #2980b9;
+}
+
+.portion-label {
+    font-size: 0.8rem;
+    color: #6c757d;
+    margin-bottom: 5px;
+    font-weight: 500;
+}
+
+/* 人气菜标识样式 */
+.popular-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #ff6b6b 0%, #ff8e8e 100%);
+    color: white;
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    border-radius: 10px;
+    margin-left: 8px;
+    font-weight: 600;
+    box-shadow: 0 2px 4px rgba(255, 107, 107, 0.3);
+}
+
+/* 新菜标识样式 */
+.new-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+    color: white;
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    border-radius: 10px;
+    margin-left: 8px;
+    font-weight: 600;
+    box-shadow: 0 2px 4px rgba(78, 205, 196, 0.3);
+}
+
 /* 隐藏元素 */
 .hidden {
     display: none !important;

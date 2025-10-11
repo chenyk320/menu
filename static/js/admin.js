@@ -2,6 +2,7 @@
 let dishesData = [];
 let categoriesData = [];
 let allergensData = [];
+let portionCounter = 0;
 
 // 初始化页面
 document.addEventListener('DOMContentLoaded', function() {
@@ -119,6 +120,21 @@ function renderDishes() {
 
     dishesList.innerHTML = dishesData.map(dish => {
         const imageSrc = dish.image ? '/static/' + dish.image : '/static/images/placeholder.svg';
+        
+        // 构建价格显示
+        let priceDisplay = '';
+        if (dish.portions && dish.portions.length > 0) {
+            const portionsHtml = dish.portions.map(portion => 
+                `<div style="display: flex; justify-content: space-between; margin-bottom: 2px;">
+                    <span style="font-size: 0.9rem;">${portion.name_cn}</span>
+                    <span style="font-weight: 600; color: #e74c3c;">€${portion.price.toFixed(2)}</span>
+                </div>`
+            ).join('');
+            priceDisplay = `<div style="margin-bottom: 10px;">${portionsHtml}</div>`;
+        } else {
+            priceDisplay = `<div class="dish-price">€${dish.price.toFixed(2)}</div>`;
+        }
+        
         return `
         <div class="item-card dish-card">
             <img src="${imageSrc}" 
@@ -126,10 +142,18 @@ function renderDishes() {
                  onerror="handleImageError(this);">
             <div class="dish-info">
                 <div class="dish-number">${dish.dish_number}</div>
-                <div class="dish-price">€${dish.price.toFixed(2)}</div>
+                ${priceDisplay}
                 <div class="dish-names">
-                    <div class="dish-name">${dish.name_cn}</div>
-                    <div class="dish-name" style="color: #6c757d; font-size: 1rem;">${dish.name_it}</div>
+                    <div class="dish-name">
+                        ${dish.name_cn}
+                        ${dish.is_popular ? '<span class="popular-badge">热销</span>' : ''}
+                        ${dish.is_new ? '<span class="new-badge">新品</span>' : ''}
+                    </div>
+                    <div class="dish-name" style="color: #6c757d; font-size: 1rem;">
+                        ${dish.name_it}
+                        ${dish.is_popular ? '<span class="popular-badge">Hot</span>' : ''}
+                        ${dish.is_new ? '<span class="new-badge">New</span>' : ''}
+                    </div>
                 </div>
                 ${dish.description_it ? `<div class="dish-description">${dish.description_it}</div>` : ''}
                 <div class="dish-allergens">
@@ -251,6 +275,12 @@ async function handleDishSubmit(e) {
     
     const formData = new FormData(e.target);
     
+    // 收集分量数据
+    const portions = collectPortionsData();
+    if (portions.length > 0) {
+        formData.append('portions', JSON.stringify(portions));
+    }
+    
     try {
         const response = await fetch('/api/dish', {
             method: 'POST',
@@ -288,6 +318,8 @@ function editDish(dishId) {
     document.getElementById('edit-price').value = dish.price;
     document.getElementById('edit-category_id').value = dish.category_id || '';
     document.getElementById('edit-surgelato').checked = dish.surgelato || false;
+    document.getElementById('edit-is_popular').checked = dish.is_popular || false;
+    document.getElementById('edit-is_new').checked = dish.is_new || false;
     
     // 显示当前图片
     const currentImagePreview = document.getElementById('current-image-preview');
@@ -334,6 +366,9 @@ function editDish(dishId) {
         editAllergenCheckboxes.appendChild(checkboxDiv);
     });
     
+    // 填充分量数据
+    populatePortionsData(dish.portions || [], 'edit-');
+    
     // 打开编辑模态框
     openModal('edit-dish-modal');
 }
@@ -344,6 +379,12 @@ async function handleEditDishSubmit(e) {
     
     const formData = new FormData(e.target);
     const dishId = formData.get('dish_id');
+    
+    // 收集分量数据
+    const portions = collectPortionsData('edit-');
+    if (portions.length > 0) {
+        formData.append('portions', JSON.stringify(portions));
+    }
     
     try {
         const response = await fetch(`/api/dish/${dishId}`, {
@@ -540,6 +581,142 @@ function getAllergenIcon(iconString) {
         return iconString;
     }
     return '?';
+}
+
+// 添加分量
+function addPortion() {
+    const portionsList = document.getElementById('portions-list');
+    const portionId = `portion_${++portionCounter}`;
+    
+    const portionItem = document.createElement('div');
+    portionItem.className = 'portion-item';
+    portionItem.innerHTML = `
+        <div style="flex: 1;">
+            <div class="portion-label">中文分量名</div>
+            <input type="text" name="portion_name_cn_${portionId}" placeholder="如：小份" required>
+        </div>
+        <div style="flex: 1;">
+            <div class="portion-label">意大利语分量名</div>
+            <input type="text" name="portion_name_it_${portionId}" placeholder="如：Piccola" required>
+        </div>
+        <div>
+            <div class="portion-label">价格 (€)</div>
+            <input type="number" name="portion_price_${portionId}" step="0.01" min="0" required class="portion-price">
+        </div>
+        <div style="display: flex; align-items: end; padding-bottom: 5px;">
+            <label style="display: flex; align-items: center; gap: 5px; font-size: 0.8rem;">
+                <input type="checkbox" name="portion_default_${portionId}" class="default-checkbox">
+                默认
+            </label>
+        </div>
+        <div style="display: flex; align-items: end; padding-bottom: 5px;">
+            <button type="button" class="remove-portion" onclick="removePortion(this)">删除</button>
+        </div>
+    `;
+    
+    portionsList.appendChild(portionItem);
+}
+
+// 添加编辑分量
+function addEditPortion() {
+    const portionsList = document.getElementById('edit-portions-list');
+    const portionId = `edit_portion_${++portionCounter}`;
+    
+    const portionItem = document.createElement('div');
+    portionItem.className = 'portion-item';
+    portionItem.innerHTML = `
+        <div style="flex: 1;">
+            <div class="portion-label">中文分量名</div>
+            <input type="text" name="portion_name_cn_${portionId}" placeholder="如：小份" required>
+        </div>
+        <div style="flex: 1;">
+            <div class="portion-label">意大利语分量名</div>
+            <input type="text" name="portion_name_it_${portionId}" placeholder="如：Piccola" required>
+        </div>
+        <div>
+            <div class="portion-label">价格 (€)</div>
+            <input type="number" name="portion_price_${portionId}" step="0.01" min="0" required class="portion-price">
+        </div>
+        <div style="display: flex; align-items: end; padding-bottom: 5px;">
+            <label style="display: flex; align-items: center; gap: 5px; font-size: 0.8rem;">
+                <input type="checkbox" name="portion_default_${portionId}" class="default-checkbox">
+                默认
+            </label>
+        </div>
+        <div style="display: flex; align-items: end; padding-bottom: 5px;">
+            <button type="button" class="remove-portion" onclick="removePortion(this)">删除</button>
+        </div>
+    `;
+    
+    portionsList.appendChild(portionItem);
+}
+
+// 删除分量
+function removePortion(button) {
+    button.closest('.portion-item').remove();
+}
+
+// 收集分量数据
+function collectPortionsData(prefix = '') {
+    const portions = [];
+    const portionsList = document.getElementById(prefix + 'portions-list');
+    const portionItems = portionsList.querySelectorAll('.portion-item');
+    
+    portionItems.forEach(item => {
+        const nameCnInput = item.querySelector('input[name*="portion_name_cn"]');
+        const nameItInput = item.querySelector('input[name*="portion_name_it"]');
+        const priceInput = item.querySelector('input[name*="portion_price"]');
+        const defaultCheckbox = item.querySelector('input[name*="portion_default"]');
+        
+        if (nameCnInput && nameItInput && priceInput) {
+            portions.push({
+                name_cn: nameCnInput.value,
+                name_it: nameItInput.value,
+                price: parseFloat(priceInput.value),
+                is_default: defaultCheckbox ? defaultCheckbox.checked : false
+            });
+        }
+    });
+    
+    return portions;
+}
+
+// 填充分量数据
+function populatePortionsData(portions, prefix = '') {
+    const portionsList = document.getElementById(prefix + 'portions-list');
+    portionsList.innerHTML = '';
+    
+    if (portions && portions.length > 0) {
+        portions.forEach(portion => {
+            const portionId = `portion_${++portionCounter}`;
+            const portionItem = document.createElement('div');
+            portionItem.className = 'portion-item';
+            portionItem.innerHTML = `
+                <div style="flex: 1;">
+                    <div class="portion-label">中文分量名</div>
+                    <input type="text" name="portion_name_cn_${portionId}" value="${portion.name_cn}" required>
+                </div>
+                <div style="flex: 1;">
+                    <div class="portion-label">意大利语分量名</div>
+                    <input type="text" name="portion_name_it_${portionId}" value="${portion.name_it}" required>
+                </div>
+                <div>
+                    <div class="portion-label">价格 (€)</div>
+                    <input type="number" name="portion_price_${portionId}" value="${portion.price}" step="0.01" min="0" required class="portion-price">
+                </div>
+                <div style="display: flex; align-items: end; padding-bottom: 5px;">
+                    <label style="display: flex; align-items: center; gap: 5px; font-size: 0.8rem;">
+                        <input type="checkbox" name="portion_default_${portionId}" class="default-checkbox" ${portion.is_default ? 'checked' : ''}>
+                        默认
+                    </label>
+                </div>
+                <div style="display: flex; align-items: end; padding-bottom: 5px;">
+                    <button type="button" class="remove-portion" onclick="removePortion(this)">删除</button>
+                </div>
+            `;
+            portionsList.appendChild(portionItem);
+        });
+    }
 }
 
 // 显示成功消息
