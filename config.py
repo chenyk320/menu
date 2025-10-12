@@ -20,9 +20,10 @@ class Config:
     
     # CDN配置
     CDN_DOMAIN = os.environ.get('CDN_DOMAIN')
+    CLOUDFLARE_DOMAIN = os.environ.get('CLOUDFLARE_DOMAIN')
     
-    # 本地备份配置 - 默认不备份到本地，避免上传到GitHub
-    LOCAL_BACKUP = os.environ.get('LOCAL_BACKUP', 'false').lower() == 'true'
+    # 本地备份配置 - Cloudflare方案默认备份到本地
+    LOCAL_BACKUP = os.environ.get('LOCAL_BACKUP', 'true').lower() == 'true'
     
     # 管理员配置
     ADMIN_USERNAME = os.environ.get('ADMIN_USERNAME', 'chenyaokang')
@@ -32,3 +33,8 @@ class Config:
     def is_cdn_enabled(cls):
         """检查CDN是否已配置"""
         return bool(cls.OSS_ACCESS_KEY_ID and cls.OSS_ACCESS_KEY_SECRET and cls.CDN_DOMAIN)
+    
+    @classmethod
+    def is_cloudflare_enabled(cls):
+        """检查Cloudflare CDN是否已配置"""
+        return bool(cls.CLOUDFLARE_DOMAIN)
