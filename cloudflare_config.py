@@ -121,3 +121,4 @@ class CloudflareCDNService:
 
 # 创建全局Cloudflare CDN服务实例
 cloudflare_cdn_service = CloudflareCDNService()
+

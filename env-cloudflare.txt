@@ -19,3 +19,4 @@ ADMIN_PASSWORD=761748142
 # OSS_ACCESS_KEY_SECRET=your_access_key_secret
 # OSS_BUCKET_NAME=menu-images
 # OSS_ENDPOINT=oss-cn-hangzhou.aliyuncs.com
+
