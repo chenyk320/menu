@@ -7,8 +7,17 @@ import uuid
 from datetime import datetime
 from functools import wraps
 from PIL import Image
-from cdn_service import cdn_service
-from config import Config
+
+# 尝试导入CDN服务，如果失败则使用本地存储
+try:
+    from cdn_service import cdn_service
+    from config import Config
+    CDN_AVAILABLE = True
+except ImportError:
+    print("⚠️  CDN服务不可用，将使用本地存储")
+    CDN_AVAILABLE = False
+    cdn_service = None
+    Config = None
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your-secret-key-here'
@@ -230,7 +239,7 @@ def add_dish():
             file.save(file_path)
             
             # 尝试上传到CDN
-            if cdn_service.is_enabled():
+            if CDN_AVAILABLE and cdn_service and cdn_service.is_enabled():
                 cdn_url = cdn_service.optimize_and_upload(file_path, unique_filename)
                 if cdn_url:
                     image_cdn_url = cdn_url
@@ -245,7 +254,7 @@ def add_dish():
                     optimize_uploaded_image(file_path, max_width=800, quality=85)
                     image_path = f"images/{unique_filename}"
             else:
-                # CDN未配置，使用本地文件
+                # CDN未配置或不可用，使用本地文件
                 optimize_uploaded_image(file_path, max_width=800, quality=85)
                 image_path = f"images/{unique_filename}"
     
@@ -327,10 +336,24 @@ def edit_dish(dish_id):
             file_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
             file.save(file_path)
             
-            # 优化图片
-            optimize_uploaded_image(file_path, max_width=800, quality=85)
-            
-            dish.image = f"images/{unique_filename}"
+            # 尝试上传到CDN
+            if CDN_AVAILABLE and cdn_service and cdn_service.is_enabled():
+                cdn_url = cdn_service.optimize_and_upload(file_path, unique_filename)
+                if cdn_url:
+                    dish.image_cdn_url = cdn_url
+                    if not Config.LOCAL_BACKUP:
+                        os.remove(file_path)
+                        dish.image = None
+                    else:
+                        dish.image = f"images/{unique_filename}"
+                else:
+                    # CDN上传失败，使用本地文件
+                    optimize_uploaded_image(file_path, max_width=800, quality=85)
+                    dish.image = f"images/{unique_filename}"
+            else:
+                # CDN未配置或不可用，使用本地文件
+                optimize_uploaded_image(file_path, max_width=800, quality=85)
+                dish.image = f"images/{unique_filename}"
     
     # 更新菜品信息
     dish.name_cn = data['name_cn']
