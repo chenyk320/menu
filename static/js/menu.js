@@ -22,6 +22,12 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('页面加载完成，开始初始化...');
     setupEventListeners();
     loadData();
+    // 确保侧边栏默认展开
+    const sidebar = document.getElementById('sidebar');
+    if (sidebar) {
+        sidebar.classList.remove('collapsed');
+        updateSidebarToggleArrow();
+    }
 });
 
 // 加载数据
@@ -89,6 +95,9 @@ function setupEventListeners() {
         } else if (e.target.classList.contains('category-btn')) {
             console.log('分类按钮被点击:', e.target.dataset.category);
             switchCategory(e.target.dataset.category);
+        } else if (e.target.classList.contains('sidebar-toggle')) {
+            console.log('侧边栏切换按钮被点击');
+            toggleSidebar();
         }
     });
     
@@ -119,6 +128,7 @@ function switchLanguage(lang) {
     renderAllergenInfo();
     renderCategoryNav();
     renderDishes();
+    updateSidebarToggleArrow();
     console.log('内容渲染完成');
 }
 
@@ -151,6 +161,29 @@ function toggleAllergenInfo() {
     }
 }
 
+// 切换侧边栏收起/展开
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const toggle = document.getElementById('sidebar-toggle');
+    
+    sidebar.classList.toggle('collapsed');
+    updateSidebarToggleArrow();
+}
+
+// 更新侧边栏切换按钮箭头
+function updateSidebarToggleArrow() {
+    const sidebar = document.getElementById('sidebar');
+    const toggle = document.getElementById('sidebar-toggle');
+    
+    if (!sidebar || !toggle) return;
+    
+    const isCollapsed = sidebar.classList.contains('collapsed');
+    toggle.textContent = isCollapsed ? '◀' : '▶';
+    toggle.title = isCollapsed 
+        ? (currentLanguage === 'cn' ? '展开分类' : 'Espandi categorie')
+        : (currentLanguage === 'cn' ? '收起分类' : 'Chiudi categorie');
+}
+
 // 渲染过敏源信息
 function renderAllergenInfo() {
     const allergenGrid = document.getElementById('allergen-grid');
@@ -176,6 +209,12 @@ function renderAllergenInfo() {
 // 渲染分类导航
 function renderCategoryNav() {
     const categoryNav = document.getElementById('category-nav');
+    const sidebarTitle = document.querySelector('.sidebar-title');
+    
+    // 更新侧边栏标题
+    if (sidebarTitle) {
+        sidebarTitle.textContent = sidebarTitle.dataset[currentLanguage];
+    }
     
     // 清空所有按钮
     categoryNav.innerHTML = '';

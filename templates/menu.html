@@ -37,14 +37,20 @@
             </div>
         </section>
 
-        <!-- 菜单分类 -->
-        <nav class="category-nav" id="category-nav">
-            <button class="category-btn active" data-category="all" data-cn="全部" data-it="Tutti">全部</button>
-            <!-- 分类按钮将通过JavaScript动态生成 -->
-        </nav>
-
         <!-- 菜品列表 -->
         <main class="menu-content">
+            <!-- 侧边栏分类导航 -->
+            <aside class="sidebar" id="sidebar">
+                <div class="sidebar-header">
+                    <h3 class="sidebar-title" data-cn="菜品分类" data-it="Categorie">菜品分类</h3>
+                    <button class="sidebar-toggle" id="sidebar-toggle" title="收起分类">▶</button>
+                </div>
+                <nav class="category-nav" id="category-nav">
+                    <button class="category-btn active" data-category="all" data-cn="全部" data-it="Tutti">全部</button>
+                    <!-- 分类按钮将通过JavaScript动态生成 -->
+                </nav>
+            </aside>
+            
             <div class="dishes-grid" id="dishes-grid">
                 <!-- 菜品将通过JavaScript动态生成 -->
             </div>

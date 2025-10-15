@@ -214,28 +214,132 @@ body {
     word-break: break-all;
 }
 
+/* 主内容区域样式 */
+.menu-content {
+    position: relative;
+}
+
+/* 侧边栏样式 */
+.sidebar {
+    background: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    position: fixed;
+    top: 50%;
+    left: 20px;
+    transform: translateY(-50%);
+    z-index: 1000;
+    width: 300px;
+    transition: all 0.3s ease;
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+}
+
+/* 移动端侧边栏宽度 */
+@media (max-width: 768px) {
+    .sidebar {
+        width: calc(100vw / 2.5);
+        max-width: 150px;
+        min-width: 120px;
+    }
+    
+    .sidebar.collapsed {
+        width: 50px;
+        padding: 8px;
+    }
+    
+    .sidebar.collapsed .sidebar-toggle {
+        width: 34px;
+        height: 34px;
+        padding: 0;
+        font-size: 1rem;
+    }
+}
+
+.sidebar.collapsed {
+    width: 60px;
+    padding: 10px;
+}
+
+.sidebar.collapsed .sidebar-title,
+.sidebar.collapsed .category-nav {
+    display: none;
+}
+
+.sidebar.collapsed .sidebar-toggle {
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    margin: 0 auto;
+    justify-content: center;
+    transform: rotate(180deg);
+    font-size: 1.2rem;
+}
+
+.sidebar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid rgba(212, 175, 55, 0.2);
+}
+
+.sidebar-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #d4af37;
+    margin: 0;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar-toggle {
+    background: linear-gradient(135deg, #d4af37 0%, #ff6b6b 100%);
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1.2rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 3px 10px rgba(212, 175, 55, 0.3);
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sidebar-toggle:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(212, 175, 55, 0.4);
+}
+
 /* 分类导航样式 */
 .category-nav {
     display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-bottom: 30px;
-    padding: 0 20px;
+    flex-direction: column;
+    gap: 12px;
 }
 
 .category-btn {
-    padding: 15px 30px;
+    padding: 12px 20px;
     border: 2px solid #d4af37;
     background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
     color: #d4af37;
-    border-radius: 25px;
+    border-radius: 15px;
     cursor: pointer;
-    font-size: 1.1rem;
+    font-size: 1rem;
     font-weight: 600;
     transition: all 0.3s ease;
     position: relative;
     overflow: hidden;
+    text-align: center;
+    width: 100%;
 }
 
 .category-btn::before {
@@ -266,6 +370,7 @@ body {
     box-shadow: 0 6px 25px rgba(212, 175, 55, 0.5);
     transform: translateY(-2px);
 }
+
 
 /* 菜品网格样式 */
 .dishes-grid {
@@ -640,6 +745,14 @@ body {
         padding: 15px;
     }
     
+    .sidebar {
+        position: fixed;
+        top: 50%;
+        left: 10px;
+        transform: translateY(-50%);
+        max-height: calc(100vh - 20px);
+    }
+    
     .restaurant-name {
         font-size: 2rem;
     }
@@ -650,12 +763,22 @@ body {
     }
     
     .category-nav {
-        padding: 0 10px;
+        flex-direction: column;
+        gap: 8px;
     }
     
     .category-btn {
-        padding: 10px 20px;
-        font-size: 0.9rem;
+        padding: 8px 12px;
+        font-size: 0.8rem;
+        width: 100%;
+        text-align: center;
+        white-space: normal;
+        word-wrap: break-word;
+        line-height: 1.2;
+        min-height: 2.4em;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
     
     .allergen-grid {
@@ -667,6 +790,33 @@ body {
 @media (max-width: 480px) {
     .restaurant-name {
         font-size: 1.8rem;
+    }
+    
+    .sidebar {
+        top: 50%;
+        left: 5px;
+        transform: translateY(-50%);
+        padding: 15px;
+        width: calc(100vw / 2.5);
+        max-width: 130px;
+        min-width: 100px;
+    }
+    
+    .sidebar.collapsed {
+        width: 45px;
+        padding: 6px;
+    }
+    
+    .sidebar.collapsed .sidebar-toggle {
+        width: 33px;
+        height: 33px;
+        padding: 0;
+        font-size: 0.9rem;
+    }
+    
+    .dishes-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
     }
     
     .allergen-grid {
