@@ -216,9 +216,12 @@ function createDishCard(dish) {
     const card = document.createElement('div');
     card.className = 'dish-card';
     
-    // 构建图片HTML - 使用懒加载
-    const imageHtml = dish.image 
-        ? `<img data-src="/static/${dish.image}" alt="${dish[`name_${currentLanguage}`]}" class="dish-image lazy-load" src="/static/images/placeholder.jpg">`
+    // 构建图片HTML - 使用懒加载（支持OSS绝对URL）
+    const imageSrc = dish.image && (dish.image.startsWith('http://') || dish.image.startsWith('https://'))
+        ? dish.image
+        : (dish.image ? `/static/${dish.image}` : null);
+    const imageHtml = imageSrc 
+        ? `<img data-src="${imageSrc}" alt="${dish[`name_${currentLanguage}`]}" class="dish-image lazy-load" src="/static/images/placeholder.jpg">`
         : `<div class="dish-image no-image">
              <div class="no-image-content">
                <div class="no-image-icon">📷</div>
@@ -248,6 +251,11 @@ function createDishCard(dish) {
         ? `<div class="new-badge">${currentLanguage === 'cn' ? '✨ 新品' : '✨ New'}</div>` 
         : '';
     
+    // 构建纯素食标识
+    const veganBadge = dish.is_vegan 
+        ? `<div class="vegan-badge">${currentLanguage === 'cn' ? '🌱 纯素' : '🌱 Vegan'}</div>` 
+        : '';
+    
     // 构建价格HTML
     let priceHtml = '';
     if (dish.portions && dish.portions.length > 0) {
@@ -275,6 +283,7 @@ function createDishCard(dish) {
             ${priceHtml}
             ${popularBadge}
             ${newBadge}
+            ${veganBadge}
             ${surgelatoBadge}
             ${dish.allergens.length > 0 ? `<div class="dish-allergens">${allergenBadges}</div>` : ''}
         </div>

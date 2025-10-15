@@ -12,8 +12,8 @@ OSS_ACCESS_KEY_SECRET=your_access_key_secret
 OSS_BUCKET_NAME=menu-images
 OSS_ENDPOINT=oss-cn-hangzhou.aliyuncs.com
 
-# CDN配置
-CDN_DOMAIN=https://your-cdn-domain.com
+# ESA边缘安全加速配置
+CDN_DOMAIN=https://your-esa-domain.com
 
 # 本地备份配置
 LOCAL_BACKUP=true

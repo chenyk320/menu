@@ -535,6 +535,20 @@ body {
     animation: newPulse 2s infinite;
 }
 
+/* 纯素食标识样式 */
+.vegan-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #a8e063 0%, #56ab2f 100%);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+    border: 1px solid #56ab2f;
+    box-shadow: 0 2px 8px rgba(86, 171, 47, 0.3);
+}
+
 @keyframes newPulse {
     0% {
         box-shadow: 0 2px 8px rgba(78, 205, 196, 0.3);

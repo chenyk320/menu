@@ -148,11 +148,13 @@ function renderDishes() {
                         ${dish.name_cn}
                         ${dish.is_popular ? '<span class="popular-badge">热销</span>' : ''}
                         ${dish.is_new ? '<span class="new-badge">新品</span>' : ''}
+                        ${dish.is_vegan ? '<span class="vegan-badge">纯素</span>' : ''}
                     </div>
                     <div class="dish-name" style="color: #6c757d; font-size: 1rem;">
                         ${dish.name_it}
                         ${dish.is_popular ? '<span class="popular-badge">Hot</span>' : ''}
                         ${dish.is_new ? '<span class="new-badge">New</span>' : ''}
+                        ${dish.is_vegan ? '<span class="vegan-badge">Vegan</span>' : ''}
                     </div>
                 </div>
                 ${dish.description_it ? `<div class="dish-description">${dish.description_it}</div>` : ''}
@@ -320,6 +322,7 @@ function editDish(dishId) {
     document.getElementById('edit-surgelato').checked = dish.surgelato || false;
     document.getElementById('edit-is_popular').checked = dish.is_popular || false;
     document.getElementById('edit-is_new').checked = dish.is_new || false;
+    document.getElementById('edit-is_vegan').checked = dish.is_vegan || false;
     
     // 显示当前图片
     const currentImagePreview = document.getElementById('current-image-preview');

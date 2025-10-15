@@ -1,5 +1,32 @@
 # Python
 __pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual env
+venv/
+
+# OS files
+.DS_Store
+
+# Local data
+instance/menu.db
+instance/*.sqlite3
+
+# Logs and tool artifacts
+.cursor/
+*.log
+
+# Generated assets
+menu_qr.png
+static/images/backup/
+
+# IDE
+.vscode/
+.idea/
+# Python
+__pycache__/
 *.py[cod]
 *$py.class
 *.so

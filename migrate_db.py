@@ -15,7 +15,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from app import app, db
 
 def migrate_database():
-    """迁移数据库，添加CDN字段"""
+    """迁移数据库，添加CDN字段和纯素字段"""
     print("🔄 开始数据库迁移...")
     
     with app.app_context():
@@ -33,6 +33,15 @@ def migrate_database():
                 print("✅ image_cdn_url 字段添加成功")
             else:
                 print("ℹ️  image_cdn_url 字段已存在")
+            
+            if 'is_vegan' not in column_names:
+                print("📝 添加 is_vegan 字段...")
+                with db.engine.connect() as conn:
+                    conn.execute(db.text('ALTER TABLE dish ADD COLUMN is_vegan BOOLEAN DEFAULT 0'))
+                    conn.commit()
+                print("✅ is_vegan 字段添加成功")
+            else:
+                print("ℹ️  is_vegan 字段已存在")
             
             print("✅ 数据库迁移完成")
             

@@ -29,10 +29,6 @@ app.config['UPLOAD_FOLDER'] = 'static/images'
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 db = SQLAlchemy(app)
-# 健康检查端点
-@app.route('/health')
-def health():
-    return 'healthy', 200
 
 
 # 身份验证装饰器
