@@ -113,7 +113,7 @@ sudo systemctl status menu --no-pager
 sudo tee /etc/nginx/sites-available/menu.conf > /dev/null << 'EOF'
 server {
     listen 80;
-    server_name _;
+    server_name qingtianmeishi.online www.qingtianmeishi.online;
 
     # 如有域名，改成你的域名，例如：example.com
     # server_name example.com www.example.com;
@@ -186,3 +186,129 @@ sudo systemctl status menu --no-pager
 当你准备接入 ESA 与 OSS 时，只需在 `.env` 中加入对应变量并在服务器上重启 `menu` 服务即可。此文档不涉及 ESA/OSS 的具体配置。
 
 
+
+### （定制）按你的参数可直接复制执行的命令
+
+以下命令基于你的实际参数：
+- 部署用户：`chenyk`
+- 域名：`qingtianmeishi.online`（含 `www`）
+- 部署路径：`/opt/menu`
+- 拉取方式：SSH（`git@github.com:chenyk320/menu.git`）
+- HTTPS：暂不启用（若需要可按上文 Certbot 小节执行）
+- Gunicorn：`127.0.0.1:8000`，`workers=2`
+- systemd 服务名：`menu`
+
+```bash
+# 0) 创建部署用户、赋权与设置密码（含 root 密码）
+sudo adduser chenyk                 # 跟随提示设置 chenyk 的密码
+sudo usermod -aG sudo chenyk        # 赋予 sudo 权限
+sudo passwd chenyk                  # 如需修改 chenyk 密码（可选）
+sudo passwd root                    # 设置 root 密码（可选）
+
+# 1) 目录与权限
+sudo mkdir -p /opt/menu
+sudo chown -R chenyk:chenyk /opt/menu
+
+# 2) 以 chenyk 拉取代码并安装依赖
+sudo -iu chenyk bash -c '
+cd /opt/menu
+git clone git@github.com:chenyk320/menu.git .
+python3 -m venv venv
+source venv/bin/activate
+pip install --upgrade pip
+pip install -r requirements.txt
+pip install gunicorn
+'
+
+# 3) 写入 .env（已包含随机生成的 SECRET_KEY 与 ADMIN_PASSWORD）
+sudo -iu chenyk bash -c 'cat > /opt/menu/.env << "EOF"
+SECRET_KEY=0f4f6f4e4f3bd2c7f7b25a8c41a6f0d2f5a9b7c3e1d4a6b8c0e2f4a6c8e0d2f4
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=U9fKp3ZqS6tV1wXy2JmB
+# DATABASE_URL 默认为 sqlite:///menu.db，无需设置
+# DATABASE_URL=sqlite:///menu.db
+
+# 预留（后续你自行配置 ESA/OSS）
+# OSS_ACCESS_KEY_ID=
+# OSS_ACCESS_KEY_SECRET=
+# OSS_BUCKET_NAME=
+# OSS_ENDPOINT=
+# CDN_DOMAIN=
+# CLOUDFLARE_DOMAIN=
+EOF'
+
+# 4) 初始化数据库（首次）
+sudo -iu chenyk bash -c '
+cd /opt/menu
+source venv/bin/activate
+python -c "from app import init_db; init_db()"
+'
+
+# 5) 创建 systemd 服务（User=chenyk，Gunicorn 127.0.0.1:8000，workers=2）
+sudo tee /etc/systemd/system/menu.service > /dev/null << 'EOF'
+[Unit]
+Description=Menu Flask app via Gunicorn
+After=network.target
+
+[Service]
+User=chenyk
+Group=chenyk
+WorkingDirectory=/opt/menu
+Environment="PATH=/opt/menu/venv/bin"
+EnvironmentFile=-/opt/menu/.env
+ExecStart=/opt/menu/venv/bin/gunicorn -b 127.0.0.1:8000 -w 2 app:app
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+sudo systemctl daemon-reload
+sudo systemctl enable menu
+sudo systemctl start menu
+sudo systemctl status menu --no-pager
+
+# 6) 配置 Nginx（反代到 Gunicorn，静态资源 alias）
+sudo tee /etc/nginx/sites-available/menu.conf > /dev/null << 'EOF'
+server {
+    listen 80;
+    server_name qingtianmeishi.online www.qingtianmeishi.online;
+
+    # 静态资源（直接由 Nginx 提供）
+    location /static/ {
+        alias /opt/menu/static/;
+        access_log off;
+        expires 7d;
+    }
+
+    # 反向代理到 Gunicorn
+    location / {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+EOF
+
+sudo ln -sf /etc/nginx/sites-available/menu.conf /etc/nginx/sites-enabled/menu.conf
+sudo nginx -t
+sudo systemctl reload nginx
+
+# 7) 防火墙（UFW）
+sudo ufw allow OpenSSH
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
+sudo ufw enable
+sudo ufw status
+
+# 8) 验证
+ss -tulpn | grep 8000                     # 确认 Gunicorn 监听
+sudo systemctl status menu --no-pager     # 服务状态
+journalctl -u menu -e                     # 服务日志
+sudo nginx -t && sudo systemctl reload nginx
+# 访问：http://qingtianmeishi.online/
+# 后台：http://qingtianmeishi.online/admin
+```
