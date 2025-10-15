@@ -17,10 +17,24 @@ APP_NAME="menu"
 APP_DIR="/var/www/menu"
 APP_USER="www-data"
 APP_GROUP="www-data"
-DOMAIN=""
-EMAIL=""
-SSL_TYPE="self-signed"
-PYTHON_VERSION="3.8"
+# 以下参数根据你的环境填写
+DOMAIN="qingtianmeishi.online"
+EMAIL="chenyk320@gmail.com"
+SSL_TYPE="letsencrypt"  # letsencrypt | self-signed
+GIT_REPO="https://github.com/chenyk320/menu"
+GIT_BRANCH="main"
+PYTHON_BIN="python3"
+# Gunicorn 并发与绑定
+GUNICORN_WORKERS="5"
+GUNICORN_THREADS="1"
+GUNICORN_TIMEOUT="60"
+GUNICORN_BIND="127.0.0.1:8000"
+# OSS/ESA（仅写入 .env，不进 Git）
+OSS_REGION_ID="eu-central-1"
+OSS_BUCKET_NAME="qingtianmeishi-123"
+OSS_ENDPOINT="oss-eu-central-1.aliyuncs.com"
+CDN_DOMAIN="https://qingtianmeishi.online"
+UPLOAD_PREFIX="images/"
 
 # 日志函数
 log_info() {
@@ -122,18 +136,18 @@ create_app_directory() {
 deploy_application() {
     log_step "部署应用代码..."
     
-    # 检查代码是否已存在
-    if [[ -f "$APP_DIR/app.py" ]]; then
-        log_warn "应用代码已存在，跳过部署"
-        return
+    if [[ -d "$APP_DIR/.git" ]]; then
+        log_info "检测到已有仓库，拉取最新代码 ($GIT_BRANCH)..."
+        cd "$APP_DIR"
+        git fetch --all --prune
+        git checkout "$GIT_BRANCH"
+        git pull --ff-only origin "$GIT_BRANCH"
+    else
+        log_info "克隆仓库: $GIT_REPO ($GIT_BRANCH)"
+        rm -rf "$APP_DIR"
+        mkdir -p "$APP_DIR"
+        git clone --branch "$GIT_BRANCH" --depth 1 "$GIT_REPO" "$APP_DIR"
     fi
-    
-    # 这里需要用户手动上传代码或从Git仓库克隆
-    log_warn "请手动上传应用代码到 $APP_DIR 目录"
-    log_warn "或使用以下命令从Git仓库克隆："
-    log_warn "git clone https://github.com/your-username/menu.git $APP_DIR"
-    
-    read -p "按Enter键继续（确保代码已上传）..."
     
     # 设置权限
     chown -R "$APP_USER:$APP_GROUP" "$APP_DIR"
@@ -148,13 +162,15 @@ create_virtualenv() {
     
     cd "$APP_DIR"
     
-    # 创建虚拟环境
-    python3 -m venv venv
+    # 始终在服务器上重建 venv
+    rm -rf venv
+    $PYTHON_BIN -m venv venv
     
     # 激活虚拟环境并安装依赖
     source venv/bin/activate
-    pip install --upgrade pip
+    pip install --upgrade pip wheel setuptools
     pip install -r requirements.txt
+    pip install gunicorn
     
     # 设置权限
     chown -R "$APP_USER:$APP_GROUP" "$APP_DIR/venv"
@@ -164,45 +180,51 @@ create_virtualenv() {
 
 # 配置环境变量
 configure_environment() {
-    log_step "配置环境变量..."
+    log_step "配置环境变量 (.env)..."
     
     if [[ ! -f "$APP_DIR/.env" ]]; then
-        log_warn "请手动创建 .env 文件并配置以下变量："
-        log_warn "SECRET_KEY=your-secret-key"
-        log_warn "DATABASE_URL=sqlite:///instance/menu.db"
-        log_warn "OSS_ACCESS_KEY_ID=your-oss-access-key-id"
-        log_warn "OSS_ACCESS_KEY_SECRET=your-oss-access-key-secret"
-        log_warn "OSS_BUCKET_NAME=your-bucket-name"
-        log_warn "OSS_ENDPOINT=oss-cn-hangzhou.aliyuncs.com"
-        log_warn "CDN_DOMAIN=https://your-cdn-domain.com"
-        log_warn "ADMIN_USERNAME=your-admin-username"
-        log_warn "ADMIN_PASSWORD=your-admin-password"
-        
-        read -p "按Enter键继续（确保.env文件已配置）..."
+        SECRET_KEY_GENERATED=$(openssl rand -hex 32)
+        cat > "$APP_DIR/.env" << EOF
+FLASK_ENV=production
+SECRET_KEY=$SECRET_KEY_GENERATED
+DATABASE_URL=sqlite:///instance/menu.db
+
+# OSS
+OSS_ACCESS_KEY_ID=
+OSS_ACCESS_KEY_SECRET=
+OSS_BUCKET_NAME=$OSS_BUCKET_NAME
+OSS_ENDPOINT=$OSS_ENDPOINT
+
+# CDN/ESA
+CDN_DOMAIN=$CDN_DOMAIN
+UPLOAD_FOLDER=static/images
+LOCAL_BACKUP=true
+EOF
+        log_warn "已生成 .env（未包含敏感 AccessKey），请部署后在服务器上编辑填入 OSS_ACCESS_KEY_ID/OSS_ACCESS_KEY_SECRET。"
     fi
     
     # 设置权限
     chown "$APP_USER:$APP_GROUP" "$APP_DIR/.env"
     chmod 600 "$APP_DIR/.env"
     
-    log_info "环境变量配置完成"
+    log_info ".env 就绪"
 }
 
 # 初始化数据库
 init_database() {
-    log_step "初始化数据库..."
+    log_step "初始化数据库（按需执行）..."
     
     cd "$APP_DIR"
     source venv/bin/activate
     
-    # 初始化数据库
-    python -c "from app import init_db; init_db()"
+    # 初始化数据库（失败可忽略，后续可手动执行）
+    python -c "from app import init_db; init_db()" || log_warn "init_db 调用失败"
     
     # 设置权限
     chown -R "$APP_USER:$APP_GROUP" "$APP_DIR/instance"
     chmod -R 755 "$APP_DIR/instance"
     
-    log_info "数据库初始化完成"
+    log_info "数据库初始化步骤完成"
 }
 
 # 配置Nginx
@@ -221,14 +243,14 @@ configure_nginx() {
 
 # 上游服务器配置
 upstream menu_backend {
-    server 127.0.0.1:8081;
+    server 127.0.0.1:8000;
     keepalive 32;
 }
 
-# HTTP重定向到HTTPS
+# HTTP（不强制跳转 HTTPS）
 server {
     listen 80;
-    server_name $DOMAIN www.$DOMAIN;
+    server_name $DOMAIN;
     
     # 健康检查端点
     location /health {
@@ -237,20 +259,30 @@ server {
         add_header Content-Type text/plain;
     }
     
-    # 重定向到HTTPS
+    # 主应用代理
     location / {
-        return 301 https://\$server_name\$request_uri;
+        proxy_pass http://menu_backend;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
+        add_header Cache-Control "no-cache, no-store, must-revalidate";
+        add_header Pragma "no-cache";
+        add_header Expires "0";
     }
 }
 
 # HTTPS主配置
 server {
     listen 443 ssl http2;
-    server_name $DOMAIN www.$DOMAIN;
+    server_name $DOMAIN;
     
-    # SSL证书配置
-    ssl_certificate /etc/ssl/certs/$DOMAIN.crt;
-    ssl_certificate_key /etc/ssl/private/$DOMAIN.key;
+    # SSL证书配置（Let’s Encrypt）
+    ssl_certificate /etc/letsencrypt/live/$DOMAIN/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/$DOMAIN/privkey.pem;
     
     # SSL安全配置
     ssl_protocols TLSv1.2 TLSv1.3;
@@ -423,8 +455,8 @@ configure_ssl() {
             apt install -y certbot python3-certbot-nginx
         fi
         
-        # 申请证书
-        certbot --nginx -d "$DOMAIN" -d "www.$DOMAIN" --email "$EMAIL" --agree-tos --non-interactive
+        # 申请证书（不强制跳转）
+        certbot --nginx -d "$DOMAIN" --email "$EMAIL" --agree-tos --non-interactive --no-redirect
         
     else
         # 生成自签名证书
@@ -451,7 +483,7 @@ configure_systemd() {
     cat > "/etc/systemd/system/$APP_NAME.service" << EOF
 [Unit]
 Description=Menu Flask Application
-Documentation=https://github.com/your-username/menu
+Documentation=$GIT_REPO
 After=network.target network-online.target
 Wants=network-online.target
 
@@ -465,8 +497,8 @@ Environment=PYTHONPATH=$APP_DIR
 Environment=FLASK_ENV=production
 Environment=FLASK_APP=app.py
 
-# 启动命令
-ExecStart=$APP_DIR/venv/bin/python app.py
+# 启动命令（Gunicorn）
+ExecStart=$APP_DIR/venv/bin/gunicorn --workers $GUNICORN_WORKERS --threads $GUNICORN_THREADS --timeout $GUNICORN_TIMEOUT --bind 127.0.0.1:8000 app:app
 
 # 重启策略
 Restart=always
@@ -494,7 +526,7 @@ SyslogIdentifier=$APP_NAME
 
 # 健康检查
 ExecStartPost=/bin/sleep 5
-ExecStartPost=/bin/bash -c 'curl -f http://localhost:8081/health || exit 1'
+ExecStartPost=/bin/bash -c 'curl -f http://127.0.0.1:8000/health || exit 1'
 
 [Install]
 WantedBy=multi-user.target
@@ -518,12 +550,8 @@ configure_firewall() {
             firewall-cmd --reload
         fi
     elif [[ "$OS" == "ubuntu" ]]; then
-        # Ubuntu
-        if command -v ufw &> /dev/null; then
-            ufw allow 80
-            ufw allow 443
-            ufw --force enable
-        fi
+        # 根据你的选择，不启用 ufw，仅提示
+        log_info "跳过 UFW 配置（请在安全组放行 22/80/443）"
     fi
     
     log_info "防火墙配置完成"

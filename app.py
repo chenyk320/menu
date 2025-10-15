@@ -29,6 +29,11 @@ app.config['UPLOAD_FOLDER'] = 'static/images'
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 db = SQLAlchemy(app)
+# 健康检查端点
+@app.route('/health')
+def health():
+    return 'healthy', 200
+
 
 # 身份验证装饰器
 def login_required(f):
@@ -149,6 +154,7 @@ class Dish(db.Model):
     surgelato = db.Column(db.Boolean, default=False)  # 冷冻食品标识
     is_popular = db.Column(db.Boolean, default=False)  # 人气菜标识
     is_new = db.Column(db.Boolean, default=False)  # 新菜标识
+    is_vegan = db.Column(db.Boolean, default=False)  # 纯素食标识
 
 # 菜品过敏源关联表
 dish_allergen = db.Table('dish_allergen',
@@ -270,7 +276,8 @@ def add_dish():
         category_id=category_id,
         surgelato=data.get('surgelato') == 'on',  # 复选框返回'on'或None
         is_popular=data.get('is_popular') == 'on',  # 人气菜标识
-        is_new=data.get('is_new') == 'on'  # 新菜标识
+        is_new=data.get('is_new') == 'on',  # 新菜标识
+        is_vegan=data.get('is_vegan') == 'on'  # 纯素食标识
     )
     
     db.session.add(dish)
@@ -364,6 +371,7 @@ def edit_dish(dish_id):
     dish.surgelato = data.get('surgelato') == 'on'
     dish.is_popular = data.get('is_popular') == 'on'
     dish.is_new = data.get('is_new') == 'on'
+    dish.is_vegan = data.get('is_vegan') == 'on'
     
     # 如果分类改变，重新生成序号
     if old_category_id != new_category_id:
@@ -485,6 +493,7 @@ def get_dishes():
             'surgelato': dish.surgelato,
             'is_popular': dish.is_popular,
             'is_new': dish.is_new,
+            'is_vegan': dish.is_vegan,
             'portions': portions,
             'allergens': [{'id': a.id, 'name_cn': a.name_cn, 'name_it': a.name_it, 'icon': a.icon} for a in dish.allergens]
         })
