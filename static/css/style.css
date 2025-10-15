@@ -271,7 +271,6 @@ body {
     padding: 10px;
 }
 
-.sidebar.collapsed .sidebar-title,
 .sidebar.collapsed .category-nav {
     display: none;
 }
@@ -282,7 +281,6 @@ body {
     padding: 0;
     margin: 0 auto;
     justify-content: center;
-    transform: rotate(180deg);
     font-size: 1.2rem;
 }
 
@@ -295,7 +293,7 @@ body {
 
 .sidebar-header {
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
     margin-bottom: 20px;
     padding-bottom: 15px;

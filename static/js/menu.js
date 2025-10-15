@@ -178,7 +178,8 @@ function updateSidebarToggleArrow() {
     if (!sidebar || !toggle) return;
     
     const isCollapsed = sidebar.classList.contains('collapsed');
-    toggle.textContent = isCollapsed ? '◀' : '▶';
+    // 按钮始终保持右箭头方向
+    toggle.textContent = '▶';
     toggle.title = isCollapsed 
         ? (currentLanguage === 'cn' ? '展开分类' : 'Espandi categorie')
         : (currentLanguage === 'cn' ? '收起分类' : 'Chiudi categorie');
