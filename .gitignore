@@ -103,8 +103,17 @@ static/images/*_optimized.*
 test_*.html
 test_*.py
 
+# 演示和示例数据文件
+demo_data.py
+create_demo_dishes.py
+add_sample_images.py
+create_high_res_icons.py
+download_*.py
+
 # 日志文件
 *.log
 
-# 数据库文件（可选，如果不想上传数据库）
-# instance/menu.db
+# 数据库文件
+instance/menu.db
+instance/*.db
+instance/*.sqlite*
