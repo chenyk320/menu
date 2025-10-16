@@ -401,7 +401,7 @@ body {
     .dish-card {
         display: flex;
         flex-direction: row;
-        align-items: center;
+        align-items: flex-start; /* 改为flex-start，避免内容被截断 */
         padding: 12px;
         border-radius: 12px;
         min-height: 80px;
@@ -421,7 +421,7 @@ body {
         display: flex;
         flex-direction: row;
         justify-content: space-between;
-        align-items: center;
+        align-items: flex-start; /* 改为flex-start，避免内容被截断 */
         min-height: 80px;
     }
     
@@ -431,6 +431,7 @@ body {
         flex-direction: column;
         justify-content: space-between;
         min-height: 80px;
+        margin-right: 0; /* 移动端不需要右边距 */
     }
     
 .dish-price-section {
@@ -438,7 +439,7 @@ body {
     margin-left: 8px;
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-start; /* 改为flex-start，确保所有价格都能显示 */
     align-items: flex-end;
 }
 
@@ -528,12 +529,13 @@ body {
     .dish-allergens {
         margin-top: 4px;
         gap: 4px;
+        grid-template-columns: repeat(4, 1fr); /* 移动端也保持4列布局 */
     }
     
     .allergen-badge {
-        width: 24px;
-        height: 24px;
-        border-radius: 4px;
+        width: 20px; /* 移动端更小的尺寸 */
+        height: 20px; /* 移动端更小的尺寸 */
+        border-radius: 3px;
     }
     
     /* 无图片时的样式调整 */
@@ -558,7 +560,7 @@ body {
 .dish-card {
     background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
     border-radius: 20px;
-    overflow: hidden;
+    overflow: visible; /* 改为visible，确保价格区域不被截断 */
     box-shadow: 0 6px 25px rgba(212, 175, 55, 0.1);
     transition: all 0.3s ease;
     border: 2px solid transparent;
@@ -715,19 +717,25 @@ body {
 .dish-content {
     padding: 20px;
     position: relative;
+    display: flex;               /* 使价格区参与高度计算 */
+    justify-content: space-between;
+    align-items: flex-start;
 }
 
 .dish-info {
-    margin-right: 120px; /* 为右上角的价格区域留出空间 */
+    margin-right: 0; /* 去除绝对定位的占位hack */
+    flex: 1; /* 让文本区域尽可能扩展 */
 }
 
 .dish-price-section {
-    position: absolute;
-    top: 20px;
-    right: 20px;
+    position: static;            /* 取消绝对定位，让其参与文档流 */
+    top: auto;
+    right: auto;
     display: flex;
     flex-direction: column;
     align-items: flex-end;
+    min-width: 100px;
+    margin-left: 20px;           /* 与文本区保持间距 */
 }
 
 .dish-number {
@@ -888,16 +896,17 @@ body {
 }
 
 .dish-allergens {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); /* 一行显示4个过敏源图标 */
+    gap: 6px;
     margin-top: 10px;
+    max-width: 100%; /* 确保过敏源区域能充分利用可用空间 */
 }
 
 .allergen-badge {
-    width: 48px;
-    height: 48px;
-    border-radius: 8px;
+    width: 40px; /* 减小尺寸以适应4列布局 */
+    height: 40px; /* 减小尺寸以适应4列布局 */
+    border-radius: 6px;
     background: #f8f9fa;
     border: 2px solid #d4af37;
     display: flex;
@@ -909,6 +918,7 @@ body {
     box-shadow: 0 2px 8px rgba(212, 175, 55, 0.2);
     position: relative;
     overflow: hidden;
+    margin: 0 auto; /* 居中对齐 */
 }
 
 .allergen-badge img {
@@ -1009,7 +1019,7 @@ body {
     }
     
     .allergen-grid {
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(4, 1fr); /* 小屏幕也保持4列布局 */
         gap: 3px;
     }
     
@@ -1031,6 +1041,7 @@ body {
     .dish-card {
         padding: 8px;
         min-height: 70px;
+        align-items: flex-start; /* 确保内容不被截断 */
     }
     
     .dish-image {
@@ -1041,6 +1052,7 @@ body {
     
     .dish-content {
         min-height: 70px;
+        align-items: flex-start; /* 确保内容不被截断 */
     }
     
     .dish-info {
@@ -1107,4 +1119,16 @@ body {
 /* 隐藏元素 */
 .hidden {
     display: none !important;
+}
+
+/* 取消卡片点击/悬停特效：保持卡片静止不抬升、不显示顶部渐变条 */
+.dish-card:hover {
+    transform: none;
+    box-shadow: 0 6px 25px rgba(212, 175, 55, 0.1);
+    border-color: transparent;
+}
+
+.dish-card::before,
+.dish-card:hover::before {
+    opacity: 0 !important;
 }

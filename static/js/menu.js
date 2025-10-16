@@ -5,21 +5,10 @@ let dishesData = [];
 let categoriesData = [];
 let allergensData = [];
 
-// 立即执行的测试
-console.log('JavaScript文件已加载');
-
-// 测试语言按钮是否存在
-setTimeout(function() {
-    const langButtons = document.querySelectorAll('.lang-btn');
-    console.log('找到语言按钮数量:', langButtons.length);
-    langButtons.forEach((btn, index) => {
-        console.log(`按钮 ${index}:`, btn.textContent, btn.dataset.lang);
-    });
-}, 1000);
+// 生产环境移除测试日志
 
 // 初始化页面
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('页面加载完成，开始初始化...');
     setupEventListeners();
     loadData();
     // 确保侧边栏默认展开
@@ -32,7 +21,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // 加载数据
 async function loadData() {
-    console.log('开始加载数据...');
+    
     
     // 显示加载状态
     showLoadingState();
@@ -48,12 +37,12 @@ async function loadData() {
         categoriesData = await categoriesResponse.json();
         allergensData = await allergensResponse.json();
 
-        console.log('数据加载完成，开始渲染...');
+        
         hideLoadingState();
         renderAllergenInfo();
         renderCategoryNav();
         renderDishes();
-        console.log('渲染完成');
+        
     } catch (error) {
         console.error('加载数据失败:', error);
         hideLoadingState();
@@ -82,31 +71,27 @@ function hideLoadingState() {
 
 // 设置事件监听器
 function setupEventListeners() {
-    console.log('设置事件监听器...');
     
     // 统一的事件委托处理
     document.addEventListener('click', function(e) {
-        console.log('点击事件触发，目标元素:', e.target);
-        console.log('目标元素类名:', e.target.classList);
         
         if (e.target.classList.contains('lang-btn')) {
-            console.log('语言按钮被点击:', e.target.dataset.lang);
+            
             switchLanguage(e.target.dataset.lang);
         } else if (e.target.classList.contains('category-btn')) {
-            console.log('分类按钮被点击:', e.target.dataset.category);
+            
             switchCategory(e.target.dataset.category);
         } else if (e.target.classList.contains('sidebar-toggle')) {
-            console.log('侧边栏切换按钮被点击');
+            
             toggleSidebar();
         }
     });
     
-    console.log('事件监听器设置完成');
+    
 }
 
 // 切换语言
 function switchLanguage(lang) {
-    console.log('切换语言到:', lang);
     currentLanguage = lang;
     
     // 更新语言按钮状态
