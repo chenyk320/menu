@@ -241,18 +241,18 @@ function createDishCard(dish) {
     const card = document.createElement('div');
     card.className = 'dish-card';
     
-    // 构建图片HTML - 使用懒加载（支持OSS绝对URL）
+    // 构建图片HTML（带包裹层以承载右上角序号） - 使用懒加载（支持OSS绝对URL）
     const imageSrc = dish.image && (dish.image.startsWith('http://') || dish.image.startsWith('https://'))
         ? dish.image
         : (dish.image ? `/static/${dish.image}` : null);
     const imageHtml = imageSrc 
-        ? `<img data-src="${imageSrc}" alt="${dish[`name_${currentLanguage}`]}" class="dish-image lazy-load" src="/static/images/placeholder.jpg">`
-        : `<div class="dish-image no-image">
+        ? `<div class="dish-image-wrapper"><img data-src="${imageSrc}" alt="${dish[`name_${currentLanguage}`]}" class="dish-image lazy-load" src="/static/images/placeholder.jpg"></div>`
+        : `<div class="dish-image-wrapper"><div class="dish-image no-image">
              <div class="no-image-content">
                <div class="no-image-icon">📷</div>
                <div class="no-image-text">${currentLanguage === 'cn' ? '暂无图片' : 'Nessuna immagine'}</div>
              </div>
-           </div>`;
+           </div></div>`;
     
     // 构建过敏源徽章HTML
     const allergenBadges = dish.allergens.map(allergen => 
@@ -281,40 +281,40 @@ function createDishCard(dish) {
         ? `<div class="vegan-badge">${currentLanguage === 'cn' ? '🌱 纯素' : '🌱 Vegan'}</div>` 
         : '';
     
-    // 构建价格HTML
-    let priceHtml = '';
-    if (dish.portions && dish.portions.length > 0) {
-        // 如果有分量，显示分量价格
-        const portionsHtml = dish.portions.map(portion => 
+    // 构建价格与分量HTML（分离成独立区域）
+    const portionsHtml = (dish.portions && dish.portions.length > 0)
+        ? `<div class="dish-area-portions dish-portions">${dish.portions.map(portion => 
             `<div class="portion-item">
                 <span class="portion-name">${portion[`name_${currentLanguage}`]}</span>
                 <span class="portion-price">€${portion.price.toFixed(2)}</span>
             </div>`
-        ).join('');
-        priceHtml = `<div class="dish-portions">${portionsHtml}</div>`;
-    } else {
-        // 如果没有分量，显示默认价格
-        priceHtml = `<div class="dish-price">€${dish.price.toFixed(2)}</div>`;
-    }
+        ).join('')}</div>`
+        : '';
+
+    const defaultPriceHtml = (!dish.portions || dish.portions.length === 0)
+        ? `<div class="dish-area-price dish-price">€${dish.price.toFixed(2)}</div>`
+        : '';
     
     card.innerHTML = `
         ${imageHtml}
-        <div class="dish-content">
-            <div class="dish-info">
-                <h3 class="dish-name">${dish[`name_${currentLanguage}`]}</h3>
-                ${dish.description_it && currentLanguage === 'it' ? `<p class="dish-description">${dish.description_it}</p>` : ''}
-                <div class="dish-badges">
-                    ${popularBadge}
-                    ${newBadge}
-                    ${veganBadge}
-                    ${surgelatoBadge}
-                </div>
-                ${dish.allergens.length > 0 ? `<div class="dish-allergens">${allergenBadges}</div>` : ''}
+        <div class="dish-content-grid">
+            <span class="dish-area-number dish-number">${dish.dish_number}</span>
+
+            <h3 class="dish-area-name dish-name">${dish[`name_${currentLanguage}`]}</h3>
+
+            ${dish.description_it && currentLanguage === 'it' ? `<p class="dish-area-description dish-description">${dish.description_it}</p>` : ''}
+
+            <div class="dish-area-badges dish-badges">
+                ${popularBadge}
+                ${newBadge}
+                ${veganBadge}
+                ${surgelatoBadge}
             </div>
-            <div class="dish-price-section">
-                <span class="dish-number">${dish.dish_number}</span>
-                ${priceHtml}
-            </div>
+
+            ${dish.allergens.length > 0 ? `<div class="dish-area-allergens dish-allergens">${allergenBadges}</div>` : ''}
+
+            ${defaultPriceHtml}
+            ${portionsHtml}
         </div>
     `;
     
