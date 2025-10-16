@@ -315,17 +315,21 @@ function createDishCard(dish) {
     card.innerHTML = `
         ${imageHtml}
         <div class="dish-content">
-            <div class="dish-header">
-                <span class="dish-number">${dish.dish_number}</span>
+            <div class="dish-info">
+                <h3 class="dish-name">${dish[`name_${currentLanguage}`]}</h3>
+                ${dish.description_it && currentLanguage === 'it' ? `<p class="dish-description">${dish.description_it}</p>` : ''}
+                <div class="dish-badges">
+                    ${popularBadge}
+                    ${newBadge}
+                    ${veganBadge}
+                    ${surgelatoBadge}
+                </div>
+                ${dish.allergens.length > 0 ? `<div class="dish-allergens">${allergenBadges}</div>` : ''}
             </div>
-            <h3 class="dish-name">${dish[`name_${currentLanguage}`]}</h3>
-            ${dish.description_it && currentLanguage === 'it' ? `<p class="dish-description">${dish.description_it}</p>` : ''}
-            ${priceHtml}
-            ${popularBadge}
-            ${newBadge}
-            ${veganBadge}
-            ${surgelatoBadge}
-            ${dish.allergens.length > 0 ? `<div class="dish-allergens">${allergenBadges}</div>` : ''}
+            <div class="dish-price-section">
+                <span class="dish-number">${dish.dish_number}</span>
+                ${priceHtml}
+            </div>
         </div>
     `;
     
