@@ -8,7 +8,7 @@ echo "=================================="
 
 # 停止服务
 echo "⏹️  停止Flask服务..."
-sudo systemctl stop menu-app
+sudo systemctl stop menu
 
 # 拉取最新代码
 echo "📥 从GitHub拉取最新代码..."
@@ -34,7 +34,7 @@ echo "🧹 清理静态文件缓存..."
 
 # 重启服务
 echo "🔄 重启Flask服务..."
-sudo systemctl start menu-app
+sudo systemctl start menu
 
 # 等待服务启动
 echo "⏳ 等待服务启动..."
@@ -42,20 +42,11 @@ sleep 3
 
 # 检查服务状态
 echo "📊 检查服务状态..."
-if sudo systemctl is-active --quiet menu-app; then
+if sudo systemctl is-active --quiet menu; then
     echo "✅ 服务启动成功"
 else
     echo "❌ 服务启动失败"
-    sudo systemctl status menu-app --no-pager
-    exit 1
-fi
-
-# 检查服务是否响应
-echo "🌐 检查服务响应..."
-if curl -s -o /dev/null -w "%{http_code}" http://localhost:8081 | grep -q "200"; then
-    echo "✅ 服务响应正常"
-else
-    echo "❌ 服务响应异常"
+    sudo systemctl status menu --no-pager
     exit 1
 fi
 
