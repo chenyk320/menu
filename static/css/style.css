@@ -394,9 +394,74 @@ body {
 /* 手机端优化：紧凑布局，一页显示更多菜品 */
 @media (max-width: 768px) {
     .dishes-grid { grid-template-columns: 1fr; gap: 12px; }
-    .dish-card { display: grid; grid-template-columns: 90px 1fr; padding: 12px; border-radius: 12px; align-items: start; }
-    .dish-image { width: 90px; height: 90px; border-radius: 8px; grid-column: 1 / 2; margin-right: 0; }
-    .dish-content-grid { grid-column: 2 / 3; padding: 0 12px 0 12px; grid-template-columns: 1fr auto; column-gap: 8px; row-gap: 6px; }
+    .dish-card { 
+        display: grid; 
+        grid-template-columns: 90px 1fr; 
+        grid-template-rows: auto auto;
+        padding: 12px; 
+        border-radius: 12px; 
+        align-items: start; 
+    }
+    
+    .dish-image-wrapper { 
+        grid-column: 1 / 2; 
+        grid-row: 1 / 2; 
+    }
+    
+    .dish-image { 
+        width: 90px; 
+        height: 90px; 
+        border-radius: 8px; 
+        margin-right: 0; 
+    }
+    
+    /* 移动端：过敏源紧贴在图片下方 */
+    .dish-allergens-below-image {
+        grid-column: 1 / 2;
+        grid-row: 2 / 3;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 3px;
+        padding: 4px 0;
+        background: transparent;
+        border-bottom: none;
+        justify-content: flex-start;
+        align-items: center;
+        max-width: 90px;
+    }
+    
+    .dish-allergens-below-image .allergen-badge {
+        width: 20px;
+        height: 20px;
+        flex-shrink: 0;
+    }
+    
+    .dish-content-grid { 
+        grid-column: 2 / 3; 
+        grid-row: 1 / 3; 
+        padding: 0 0 0 12px; 
+        grid-template-columns: 1fr auto; 
+        grid-template-areas:
+            'name number'
+            'description price'
+            'badges portions'
+            'allergens allergens';
+        column-gap: 8px; 
+        row-gap: 6px; 
+    }
+    
+    /* 移动端：价格和份量靠右对齐，紧贴序号下方 */
+    .dish-area-price {
+        grid-area: price;
+        justify-self: end;
+        align-self: start;
+    }
+    
+    .dish-area-portions {
+        grid-area: portions;
+        justify-self: end;
+        align-self: start;
+    }
 
     .dish-number {
         background: #667eea;
@@ -429,12 +494,25 @@ body {
     
     .portion-price { font-size: 0.9rem; font-weight: 700; color: #e74c3c; }
     
-    .dish-badges { margin-top: 2px; display: flex; flex-wrap: wrap; gap: 4px; }
+    .dish-badges { 
+        margin-top: 2px; 
+        display: flex; 
+        flex-wrap: wrap; 
+        gap: 4px; 
+        align-items: center;
+    }
     
     .popular-badge,
     .new-badge,
     .vegan-badge,
-    .surgelato-badge { font-size: 0.65rem; padding: 2px 4px; margin: 0; display: inline-block; }
+    .surgelato-badge { 
+        font-size: 0.65rem; 
+        padding: 2px 6px; 
+        margin: 0 !important; 
+        display: inline-flex;
+        align-items: center;
+        white-space: nowrap;
+    }
     
     .dish-allergens { margin-top: 2px; gap: 3px; grid-template-columns: repeat(4, 1fr); }
     
@@ -462,7 +540,7 @@ body {
 .dish-card {
     background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
     border-radius: 20px;
-    overflow: visible; /* 让卡片根据内容自动增高，完整展示内容 */
+    overflow: hidden; /* 确保圆角正确显示 */
     box-shadow: 0 6px 25px rgba(212, 175, 55, 0.1);
     transition: all 0.3s ease;
     border: 2px solid transparent;
@@ -506,6 +584,7 @@ body {
     justify-content: center;
     color: #6c757d;
     font-size: 2rem;
+    border-radius: 20px 20px 0 0; /* 只保留上方圆角 */
 }
 
 /* 懒加载图片样式 */
@@ -831,6 +910,25 @@ body {
     border: 1px solid #2196f3;
 }
 
+/* 图片下方的过敏源显示 */
+.dish-allergens-below-image {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px 12px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #fff 100%);
+    border-bottom: 1px solid #e9ecef;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+/* 确保过敏源徽章在图片下方时保持合适的大小 */
+.dish-allergens-below-image .allergen-badge {
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+}
+
 .dish-allergens {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -977,12 +1075,54 @@ body {
     .dish-card {
         padding: 8px;
         align-items: flex-start; /* 确保内容不被截断 */
+        grid-template-columns: 70px 1fr;
+    }
+    
+    .dish-image-wrapper {
+        grid-column: 1 / 2;
+        grid-row: 1 / 2;
     }
     
     .dish-image {
         width: 70px;
         height: 70px;
-        margin-right: 8px;
+        margin-right: 0;
+    }
+    
+    .dish-allergens-below-image {
+        grid-column: 1 / 2;
+        grid-row: 2 / 3;
+        max-width: 70px;
+        padding: 3px 0;
+        gap: 2px;
+    }
+    
+    .dish-allergens-below-image .allergen-badge {
+        width: 18px;
+        height: 18px;
+    }
+    
+    .dish-content-grid {
+        grid-column: 2 / 3;
+        grid-row: 1 / 3;
+        padding: 0 0 0 8px;
+        grid-template-areas:
+            'name number'
+            'description price'
+            'badges portions'
+            'allergens allergens';
+    }
+    
+    .dish-badges {
+        gap: 3px;
+    }
+    
+    .popular-badge,
+    .new-badge,
+    .vegan-badge,
+    .surgelato-badge {
+        font-size: 0.6rem;
+        padding: 2px 4px;
     }
     
     .dish-content {

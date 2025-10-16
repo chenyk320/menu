@@ -297,6 +297,7 @@ function createDishCard(dish) {
     
     card.innerHTML = `
         ${imageHtml}
+        ${dish.allergens.length > 0 ? `<div class="dish-allergens-below-image">${allergenBadges}</div>` : ''}
         <div class="dish-content-grid">
             <span class="dish-area-number dish-number">${dish.dish_number}</span>
 
@@ -310,8 +311,6 @@ function createDishCard(dish) {
                 ${veganBadge}
                 ${surgelatoBadge}
             </div>
-
-            ${dish.allergens.length > 0 ? `<div class="dish-area-allergens dish-allergens">${allergenBadges}</div>` : ''}
 
             ${defaultPriceHtml}
             ${portionsHtml}
