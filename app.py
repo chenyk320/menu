@@ -151,6 +151,7 @@ class Dish(db.Model):
     is_popular = db.Column(db.Boolean, default=False)  # 人气菜标识
     is_new = db.Column(db.Boolean, default=False)  # 新菜标识
     is_vegan = db.Column(db.Boolean, default=False)  # 纯素食标识
+    spiciness_level = db.Column(db.Integer, default=0)  # 辣度等级：0=不辣，1=微辣🔥，2=中辣🔥🔥，3=特辣🔥🔥🔥
 
 # 菜品过敏源关联表
 dish_allergen = db.Table('dish_allergen',
@@ -273,7 +274,8 @@ def add_dish():
         surgelato=data.get('surgelato') == 'on',  # 复选框返回'on'或None
         is_popular=data.get('is_popular') == 'on',  # 人气菜标识
         is_new=data.get('is_new') == 'on',  # 新菜标识
-        is_vegan=data.get('is_vegan') == 'on'  # 纯素食标识
+        is_vegan=data.get('is_vegan') == 'on',  # 纯素食标识
+        spiciness_level=int(data.get('spiciness_level', 0))  # 辣度等级
     )
     
     db.session.add(dish)
@@ -368,6 +370,7 @@ def edit_dish(dish_id):
     dish.is_popular = data.get('is_popular') == 'on'
     dish.is_new = data.get('is_new') == 'on'
     dish.is_vegan = data.get('is_vegan') == 'on'
+    dish.spiciness_level = int(data.get('spiciness_level', 0))
     
     # 如果分类改变，重新生成序号
     if old_category_id != new_category_id:
@@ -490,6 +493,7 @@ def get_dishes():
             'is_popular': dish.is_popular,
             'is_new': dish.is_new,
             'is_vegan': dish.is_vegan,
+            'spiciness_level': dish.spiciness_level,
             'portions': portions,
             'allergens': [{'id': a.id, 'name_cn': a.name_cn, 'name_it': a.name_it, 'icon': a.icon} for a in dish.allergens]
         })

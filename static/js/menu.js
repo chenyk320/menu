@@ -241,18 +241,29 @@ function createDishCard(dish) {
     const card = document.createElement('div');
     card.className = 'dish-card';
     
-    // 构建图片HTML（带包裹层以承载右上角序号） - 使用懒加载（支持OSS绝对URL）
+    // 构建辣度标识（显示在图片右侧）
+    const spicinessBadge = dish.spiciness_level > 0
+        ? `<div class="spiciness-badge">${'🔥'.repeat(dish.spiciness_level)}</div>`
+        : '';
+    
+    // 构建图片HTML（带包裹层以承载右上角序号和右侧辣度） - 使用懒加载（支持OSS绝对URL）
     const imageSrc = dish.image && (dish.image.startsWith('http://') || dish.image.startsWith('https://'))
         ? dish.image
         : (dish.image ? `/static/${dish.image}` : null);
     const imageHtml = imageSrc 
-        ? `<div class="dish-image-wrapper"><img data-src="${imageSrc}" alt="${dish[`name_${currentLanguage}`]}" class="dish-image lazy-load" src="/static/images/placeholder.jpg"></div>`
-        : `<div class="dish-image-wrapper"><div class="dish-image no-image">
-             <div class="no-image-content">
-               <div class="no-image-icon">📷</div>
-               <div class="no-image-text">${currentLanguage === 'cn' ? '暂无图片' : 'Nessuna immagine'}</div>
+        ? `<div class="dish-image-wrapper">
+             <img data-src="${imageSrc}" alt="${dish[`name_${currentLanguage}`]}" class="dish-image lazy-load" src="/static/images/placeholder.jpg">
+             ${spicinessBadge}
+           </div>`
+        : `<div class="dish-image-wrapper">
+             <div class="dish-image no-image">
+               <div class="no-image-content">
+                 <div class="no-image-icon">📷</div>
+                 <div class="no-image-text">${currentLanguage === 'cn' ? '暂无图片' : 'Nessuna immagine'}</div>
+               </div>
              </div>
-           </div></div>`;
+             ${spicinessBadge}
+           </div>`;
     
     // 构建过敏源徽章HTML
     const allergenBadges = dish.allergens.map(allergen => 

@@ -323,6 +323,7 @@ function editDish(dishId) {
     document.getElementById('edit-is_popular').checked = dish.is_popular || false;
     document.getElementById('edit-is_new').checked = dish.is_new || false;
     document.getElementById('edit-is_vegan').checked = dish.is_vegan || false;
+    document.getElementById('edit-spiciness_level').value = dish.spiciness_level || 0;
     
     // 显示当前图片
     const currentImagePreview = document.getElementById('current-image-preview');
