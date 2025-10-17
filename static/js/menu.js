@@ -279,7 +279,7 @@ function createDishCard(dish) {
     
     // 构建人气菜标识
     const popularBadge = dish.is_popular 
-        ? `<div class="popular-badge">${currentLanguage === 'cn' ? '🔥 热销' : '🔥 Hot'}</div>` 
+        ? `<div class="popular-badge">${currentLanguage === 'cn' ? '⭐ 热销' : '⭐ Popolare'}</div>` 
         : '';
     
     // 构建新菜标识
