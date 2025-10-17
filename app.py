@@ -605,7 +605,7 @@ def init_db():
                 Category(name_cn='凉菜', name_it='Piatti Freddi', sort_order=2, prefix_letter='B'),
                 Category(name_cn='小吃', name_it='Spuntini', sort_order=3, prefix_letter='C'),
                 Category(name_cn='汤类', name_it='Zuppe', sort_order=4, prefix_letter='D'),
-                Category(name_cn='鱼类', name_it='Piatti di Pesce', sort_order=5, prefix_letter='E'),
+                Category(name_cn='海鲜', name_it='Frutti di Mare', sort_order=5, prefix_letter='E'),
                 Category(name_cn='肉类', name_it='Piatti di Carne', sort_order=6, prefix_letter='F'),
                 Category(name_cn='素菜', name_it='Piatti Vegetariani', sort_order=7, prefix_letter='G')
             ]
