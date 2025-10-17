@@ -607,7 +607,8 @@ def init_db():
                 Category(name_cn='汤类', name_it='Zuppe', sort_order=4, prefix_letter='D'),
                 Category(name_cn='海鲜', name_it='Frutti di Mare', sort_order=5, prefix_letter='E'),
                 Category(name_cn='肉类', name_it='Piatti di Carne', sort_order=6, prefix_letter='F'),
-                Category(name_cn='素菜', name_it='Piatti Vegetariani', sort_order=7, prefix_letter='G')
+                Category(name_cn='素菜', name_it='Piatti Vegetariani', sort_order=7, prefix_letter='G'),
+                Category(name_cn='饮品', name_it='Bevande', sort_order=8, prefix_letter='H')
             ]
             for category in categories:
                 db.session.add(category)
