@@ -1044,6 +1044,14 @@ body {
         grid-template-columns: repeat(4, 1fr);
         gap: 4px;
     }
+    
+    /* 平板设备辣度标识 */
+    .spiciness-badge {
+        right: 8px;
+        padding: 6px 10px;
+        font-size: 1rem;
+        border-width: 1.5px;
+    }
 }
 
 @media (max-width: 480px) {
@@ -1097,6 +1105,18 @@ body {
     
     .allergen-name {
         font-size: 0.55rem;
+    }
+    
+    /* 手机设备辣度标识 - 更小更精致 */
+    .spiciness-badge {
+        right: 4px;
+        padding: 3px 6px;
+        font-size: 0.75rem;
+        border-radius: 12px;
+        border-width: 1px;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+        gap: 1px;
+        animation: none; /* 移动端禁用动画以提升性能 */
     }
     
     /* 进一步优化小屏幕的菜品布局 */
