@@ -78,7 +78,7 @@ def reorder_dishes_in_category(category_id):
     db.session.commit()
 
 # 图片优化函数
-def optimize_uploaded_image(file_path, max_width=800, quality=85):
+def optimize_uploaded_image(file_path, max_width=350, quality=75):
     """
     优化上传的图片
     :param file_path: 图片文件路径
@@ -254,11 +254,11 @@ def add_dish():
                         image_path = f"images/{unique_filename}"
                 else:
                     # CDN上传失败，使用本地文件
-                    optimize_uploaded_image(file_path, max_width=800, quality=85)
+                    optimize_uploaded_image(file_path, max_width=350, quality=75)
                     image_path = f"images/{unique_filename}"
             else:
                 # CDN未配置或不可用，使用本地文件
-                optimize_uploaded_image(file_path, max_width=800, quality=85)
+                optimize_uploaded_image(file_path, max_width=350, quality=75)
                 image_path = f"images/{unique_filename}"
     
     # 创建菜品
@@ -353,11 +353,11 @@ def edit_dish(dish_id):
                         dish.image = f"images/{unique_filename}"
                 else:
                     # CDN上传失败，使用本地文件
-                    optimize_uploaded_image(file_path, max_width=800, quality=85)
+                    optimize_uploaded_image(file_path, max_width=350, quality=75)
                     dish.image = f"images/{unique_filename}"
             else:
                 # CDN未配置或不可用，使用本地文件
-                optimize_uploaded_image(file_path, max_width=800, quality=85)
+                optimize_uploaded_image(file_path, max_width=350, quality=75)
                 dish.image = f"images/{unique_filename}"
     
     # 更新菜品信息
