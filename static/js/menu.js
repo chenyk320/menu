@@ -241,9 +241,9 @@ function createDishCard(dish) {
     const card = document.createElement('div');
     card.className = 'dish-card';
     
-    // 构建辣度标识（显示在图片右侧）
+    // 构建辣度标识（显示在图片右侧，竖向排列）
     const spicinessBadge = dish.spiciness_level > 0
-        ? `<div class="spiciness-badge">${'🔥'.repeat(dish.spiciness_level)}</div>`
+        ? `<div class="spiciness-badge">${Array(dish.spiciness_level).fill('<span class="fire-icon">🔥</span>').join('')}</div>`
         : '';
     
     // 构建图片HTML（带包裹层以承载右上角序号和右侧辣度） - 使用懒加载（支持OSS绝对URL）

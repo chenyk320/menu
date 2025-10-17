@@ -591,7 +591,13 @@ body {
     backdrop-filter: blur(5px);
     border: 2px solid rgba(255, 107, 107, 0.3);
     animation: pulse-spicy 2s ease-in-out infinite;
+}
+
+/* 单个火焰图标 */
+.fire-icon {
+    display: block;
     line-height: 1;
+    font-size: 1rem;
 }
 
 @keyframes pulse-spicy {
@@ -1051,10 +1057,13 @@ body {
     .spiciness-badge {
         right: 4px;
         padding: 5px 3px;
-        font-size: 0.9rem;
         border-radius: 12px;
         border-width: 1.5px;
         gap: 1px;
+    }
+    
+    .fire-icon {
+        font-size: 0.9rem;
     }
 }
 
@@ -1115,12 +1124,15 @@ body {
     .spiciness-badge {
         right: 3px;
         padding: 4px 2px;
-        font-size: 0.7rem;
         border-radius: 10px;
         border-width: 1px;
         box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
         gap: 1px;
         animation: none; /* 移动端禁用动画以提升性能 */
+    }
+    
+    .fire-icon {
+        font-size: 0.7rem;
     }
     
     /* 进一步优化小屏幕的菜品布局 */
